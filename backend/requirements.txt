@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+pydantic-settings
+python-dotenv
+sqlalchemy
+psycopg2-binary
+alembic
+qdrant-client
+pypdf
+sentence-transformers
+langgraph
+langchain-groq
+python-jose
+httpx
+apscheduler
