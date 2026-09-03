@@ -2,7 +2,7 @@ import { useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import IssueCard from '../components/IssueCard'
 import { useIssues } from '../hooks/useIssues'
-import { Search, SlidersHorizontal, ChevronDown } from 'lucide-react'
+import { Search } from 'lucide-react'
 
 export default function IssueExplorer() {
   const [searchInput, setSearchInput] = useState('')
@@ -44,10 +44,6 @@ export default function IssueExplorer() {
 
           <div className="filters-bar">
             <div className="filter-group">
-              <button className="filter-button">
-                <span>Language</span>
-                <ChevronDown size={14} />
-              </button>
               <select
                 className="filter-select"
                 value={difficulty}
@@ -58,15 +54,7 @@ export default function IssueExplorer() {
                 <option value="medium">Intermediate</option>
                 <option value="hard">Hard</option>
               </select>
-              <button className="filter-button">
-                <span>Label</span>
-                <ChevronDown size={14} />
-              </button>
             </div>
-            <button className="filter-button secondary">
-              <SlidersHorizontal size={14} />
-              <span>More Filters</span>
-            </button>
           </div>
         </section>
 

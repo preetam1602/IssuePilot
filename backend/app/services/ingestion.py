@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.models import ContributionEvent, Issue
 from app.services.github_client import (
+    difficulty_for_stars,
     fetch_contribution_events,
     fetch_issues,
     fetch_repo_metadata,
@@ -12,10 +13,16 @@ from app.services.github_client import (
 
 def ingest_issues(db: Session, repos_by_difficulty: dict[str, list[str]], token: str) -> int:
     total = 0
-    for difficulty, repos in repos_by_difficulty.items():
+    seen_repos = set()
+    for repos in repos_by_difficulty.values():
         for repo in repos:
+            if repo in seen_repos:
+                continue
+            seen_repos.add(repo)
+
             repo_meta = fetch_repo_metadata(repo, token)
             issues = fetch_issues(repo, token)
+            difficulty = difficulty_for_stars(repo_meta.get("stargazers_count", 0))
 
             for item in issues:
                 values = {

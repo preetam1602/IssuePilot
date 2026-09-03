@@ -8,14 +8,14 @@ export default function Sidebar() {
   const navItems = [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { label: 'Issue Explorer', path: '/issues', icon: Search },
-    { label: 'Saved Issues', path: '/saved', icon: Bookmark },
-    { label: 'History', path: '/history', icon: History },
-    { label: 'Trending', path: '/trending', icon: TrendingUp },
+    { label: 'Saved Issues', path: '/saved', icon: Bookmark, soon: true },
+    { label: 'History', path: '/history', icon: History, soon: true },
+    { label: 'Trending', path: '/trending', icon: TrendingUp, soon: true },
   ]
 
   const userItems = [
     { label: 'Profile', path: '/profile', icon: User },
-    { label: 'Settings', path: '/settings', icon: Settings },
+    { label: 'Settings', path: '/settings', icon: Settings, soon: true },
   ]
 
   return (
@@ -24,14 +24,22 @@ export default function Sidebar() {
         <div className="sidebar-label">Main Navigation</div>
         <nav className="sidebar-nav">
           {navItems.map((item) => (
-            <Link 
-              key={item.path} 
-              to={item.path} 
-              className={`sidebar-link ${isActive(item.path) ? 'active' : ''}`}
-            >
-              <item.icon size={18} />
-              <span>{item.label}</span>
-            </Link>
+            item.soon ? (
+              <div key={item.path} className="sidebar-link disabled">
+                <item.icon size={18} />
+                <span>{item.label}</span>
+                <span className="soon-badge">Soon</span>
+              </div>
+            ) : (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`sidebar-link ${isActive(item.path) ? 'active' : ''}`}
+              >
+                <item.icon size={18} />
+                <span>{item.label}</span>
+              </Link>
+            )
           ))}
         </nav>
       </div>
@@ -40,14 +48,22 @@ export default function Sidebar() {
         <div className="sidebar-label">User</div>
         <nav className="sidebar-nav">
           {userItems.map((item) => (
-            <Link 
-              key={item.path} 
-              to={item.path} 
-              className={`sidebar-link ${isActive(item.path) ? 'active' : ''}`}
-            >
-              <item.icon size={18} />
-              <span>{item.label}</span>
-            </Link>
+            item.soon ? (
+              <div key={item.path} className="sidebar-link disabled">
+                <item.icon size={18} />
+                <span>{item.label}</span>
+                <span className="soon-badge">Soon</span>
+              </div>
+            ) : (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`sidebar-link ${isActive(item.path) ? 'active' : ''}`}
+              >
+                <item.icon size={18} />
+                <span>{item.label}</span>
+              </Link>
+            )
           ))}
         </nav>
       </div>
@@ -108,6 +124,22 @@ export default function Sidebar() {
         .sidebar-link.active {
           color: var(--primary);
           background: var(--border-light);
+        }
+        .sidebar-link.disabled {
+          color: var(--muted);
+          cursor: not-allowed;
+          opacity: 0.55;
+        }
+        .soon-badge {
+          margin-left: auto;
+          font-size: 9px;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          font-weight: 700;
+          padding: 2px 6px;
+          border-radius: 99px;
+          border: 1px solid var(--border);
+          color: var(--muted);
         }
         .sidebar-footer {
           margin-top: auto;

@@ -10,6 +10,7 @@ pypdf
 sentence-transformers
 langgraph
 langchain-groq
+langchain-text-splitters
 python-jose
 httpx
 apscheduler

@@ -17,6 +17,16 @@ def _headers(token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"}
 
 
+def difficulty_for_stars(stars: int | None) -> str:
+    """Classify a repo's difficulty tier from its actual star count (mirrors DIFFICULTY_TIERS)."""
+    stars = stars or 0
+    if stars > 20000:
+        return "hard"
+    if stars >= 2000:
+        return "medium"
+    return "easy"
+
+
 def discover_repos(token: str, per_tier: int = 10) -> dict[str, list[str]]:
     """
     Discover repos across difficulty tiers via GitHub's search API, biased

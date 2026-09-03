@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ExternalLink, Zap, Star, GitFork } from 'lucide-react'
+import { Zap, Star, GitFork } from 'lucide-react'
 import PredictionBadge from './PredictionBadge'
 import { difficultyLabel } from '../lib/format'
 
@@ -52,13 +52,9 @@ export default function IssueCard({ issue }) {
       </div>
 
       <div className="card-footer">
-        <Link to={`/issues/${issue_id}`} className="button button-ghost">
-          <ExternalLink size={16} />
-          <span>View Issue</span>
-        </Link>
         <Link to={`/issues/${issue_id}`} className="button button-primary">
           <Zap size={16} />
-          <span>Predict</span>
+          <span>View & Predict</span>
         </Link>
       </div>
 
