@@ -4,7 +4,7 @@ import { useIssue } from '../hooks/useIssue'
 import { usePrediction } from '../hooks/usePrediction'
 import { timeAgo, scoreTier, difficultyLabel } from '../lib/format'
 import { Github, ExternalLink, MessageSquare, Clock, Code, BookOpen, CheckCircle2, Zap } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export default function IssueDetail() {
   const { id } = useParams()
@@ -38,7 +38,12 @@ export default function IssueDetail() {
 
   return (
     <div className="main-content">
-      <header className="detail-header">
+      <motion.header
+        className="detail-header"
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
         <div className="breadcrumb">
           <Github size={14} />
           <span>{owner}</span>
@@ -53,10 +58,15 @@ export default function IssueDetail() {
             <span className="meta-item"><CheckCircle2 size={14} className="text-success" /> Beginner Friendly</span>
           )}
         </div>
-      </header>
+      </motion.header>
 
       <div className="detail-grid">
-        <div className="detail-left">
+        <motion.div
+          className="detail-left"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
           <section className="card detail-card">
             <div className="card-section-header">
               <BookOpen size={18} />
@@ -74,15 +84,29 @@ export default function IssueDetail() {
             </div>
             <div className="skills-row">
               {labels.length === 0 && <span className="text-muted text-small">No labels.</span>}
-              {labels.map(label => (
-                <span key={label} className="skill-badge">{label}</span>
+              {labels.map((label, i) => (
+                <motion.span
+                  key={label}
+                  className="skill-badge"
+                  initial={{ opacity: 0, scale: 0.85 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.15 + i * 0.04 }}
+                  whileHover={{ scale: 1.06 }}
+                >
+                  {label}
+                </motion.span>
               ))}
               {language && <span className="skill-badge">{language}</span>}
             </div>
           </section>
-        </div>
+        </motion.div>
 
-        <aside className="detail-right">
+        <motion.aside
+          className="detail-right"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.15 }}
+        >
           <div className="card prediction-card">
             <div className="card-section-header">
               <h3>AI Analysis</h3>
@@ -104,29 +128,40 @@ export default function IssueDetail() {
               </div>
             </div>
 
-            {prediction.data && (
-              <div className="prediction-graph">
-                <div className="graph-label">Success Probability</div>
-                <div className="graph-bar">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${Math.round(prediction.data.success_probability * 100)}%` }}
-                    transition={{ duration: 1 }}
-                    className="graph-fill"
-                  ></motion.div>
-                </div>
-              </div>
-            )}
+            <AnimatePresence>
+              {prediction.data && (
+                <motion.div
+                  className="prediction-graph"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                >
+                  <div className="graph-label">Success Probability</div>
+                  <div className="graph-bar">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${Math.round(prediction.data.success_probability * 100)}%` }}
+                      transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+                      className="graph-fill"
+                    ></motion.div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-            <button
+            <motion.button
               className="button button-primary"
               style={{ width: '100%', marginTop: 24 }}
               onClick={() => prediction.mutate(id)}
               disabled={prediction.isPending}
+              whileHover={{ scale: prediction.isPending ? 1 : 1.02 }}
+              whileTap={{ scale: prediction.isPending ? 1 : 0.98 }}
+              animate={prediction.isPending ? { opacity: [1, 0.6, 1] } : { opacity: 1 }}
+              transition={prediction.isPending ? { repeat: Infinity, duration: 1.2 } : {}}
             >
               <Zap size={18} />
               <span>{prediction.isPending ? 'Analyzing...' : 'Can I solve this?'}</span>
-            </button>
+            </motion.button>
             {prediction.isError && <p className="text-muted text-small">Prediction failed. Try again.</p>}
 
             {url ? (
@@ -141,7 +176,7 @@ export default function IssueDetail() {
               </button>
             )}
           </div>
-        </aside>
+        </motion.aside>
       </div>
 
       <style>{`

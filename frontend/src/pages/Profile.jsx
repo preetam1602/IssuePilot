@@ -1,6 +1,17 @@
 import { Github, MapPin, Link as LinkIcon, Twitter, Mail, Award, Clock, Star, User as UserIcon } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { useProfile } from '../hooks/useProfile'
+import AnimatedNumber from '../components/AnimatedNumber'
 import { timeAgo } from '../lib/format'
+
+const statVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.1 } },
+}
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } },
+}
 
 export default function Profile() {
   const { data: profile, isLoading, isError } = useProfile()
@@ -29,15 +40,25 @@ export default function Profile() {
   return (
     <div className="main-content">
       <div className="profile-layout">
-        <aside className="profile-sidebar">
+        <motion.aside
+          className="profile-sidebar"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4 }}
+        >
           <div className="card profile-main-card">
-            <div className="profile-avatar-large">
+            <motion.div
+              className="profile-avatar-large"
+              initial={{ opacity: 0, scale: 0.7 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 18 }}
+            >
               {avatar_url ? (
                 <img src={avatar_url} alt={username} />
               ) : (
                 <div className="avatar-fallback"><UserIcon size={48} /></div>
               )}
-            </div>
+            </motion.div>
             <div className="profile-info">
               <h1>{username}</h1>
               {username && <p className="username">@{username}</p>}
@@ -49,46 +70,68 @@ export default function Profile() {
               {twitter && <div className="detail-row"><Twitter size={16} /> <span>{twitter}</span></div>}
               {email && <div className="detail-row"><Mail size={16} /> <span>{email}</span></div>}
             </div>
-            <button className="button button-secondary" style={{ width: '100%', marginTop: 24 }}>Edit Profile</button>
+            <motion.button
+              className="button button-secondary"
+              style={{ width: '100%', marginTop: 24 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Edit Profile
+            </motion.button>
           </div>
-        </aside>
+        </motion.aside>
 
         <main className="profile-main">
-          <section className="profile-stats-grid">
-            <div className="card stat-card">
+          <motion.section
+            className="profile-stats-grid"
+            variants={statVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <motion.div className="card stat-card" variants={cardVariants} whileHover={{ y: -4 }}>
               <div className="stat-icon"><Award size={24} className="text-primary" /></div>
               <div className="stat-content">
-                <span className="stat-value">{stats.contributions ?? 0}</span>
+                <span className="stat-value"><AnimatedNumber value={stats.contributions ?? 0} /></span>
                 <span className="stat-label">Contributions</span>
               </div>
-            </div>
-            <div className="card stat-card">
+            </motion.div>
+            <motion.div className="card stat-card" variants={cardVariants} whileHover={{ y: -4 }}>
               <div className="stat-icon"><Star size={24} className="text-warning" /></div>
               <div className="stat-content">
-                <span className="stat-value">{stats.total_stars ?? 0}</span>
+                <span className="stat-value"><AnimatedNumber value={stats.total_stars ?? 0} /></span>
                 <span className="stat-label">Total Stars</span>
               </div>
-            </div>
-            <div className="card stat-card">
+            </motion.div>
+            <motion.div className="card stat-card" variants={cardVariants} whileHover={{ y: -4 }}>
               <div className="stat-icon"><Clock size={24} className="text-info" /></div>
               <div className="stat-content">
-                <span className="stat-value">{stats.avg_resolution_hours != null ? `${stats.avg_resolution_hours}h` : '—'}</span>
+                <span className="stat-value">
+                  {stats.avg_resolution_hours != null ? <AnimatedNumber value={stats.avg_resolution_hours} suffix="h" /> : '—'}
+                </span>
                 <span className="stat-label">Avg. Resolution</span>
               </div>
-            </div>
-          </section>
+            </motion.div>
+          </motion.section>
 
-          <section className="card profile-section">
+          <motion.section
+            className="card profile-section"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.15 }}
+          >
             <h3>Top Languages</h3>
             {languages.length === 0 ? (
               <p className="text-muted text-small">No language data yet.</p>
             ) : (
               <>
                 <div className="language-bar">
-                  {languages.map(lang => (
-                    <div
+                  {languages.map((lang, i) => (
+                    <motion.div
                       key={lang.name}
-                      style={{ width: `${lang.percent}%`, background: lang.color }}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${lang.percent}%` }}
+                      transition={{ duration: 0.8, delay: 0.1 + i * 0.06, ease: [0.22, 1, 0.36, 1] }}
+                      style={{ background: lang.color }}
                       className="bar-segment"
                     />
                   ))}
@@ -104,26 +147,37 @@ export default function Profile() {
                 </div>
               </>
             )}
-          </section>
+          </motion.section>
 
-          <section className="card profile-section">
+          <motion.section
+            className="card profile-section"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.25 }}
+          >
             <h3>Recent Activity</h3>
             {recent_activity.length === 0 ? (
               <p className="text-muted text-small">No recent activity.</p>
             ) : (
               <div className="activity-timeline">
                 {recent_activity.map((activity, i) => (
-                  <div className="activity-item" key={i}>
+                  <motion.div
+                    className="activity-item"
+                    key={i}
+                    initial={{ opacity: 0, x: -12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 + i * 0.06 }}
+                  >
                     <div className="activity-icon"><Github size={14} /></div>
                     <div className="activity-details">
                       <p>{activity.description}</p>
                       <span>{timeAgo(activity.date)}</span>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             )}
-          </section>
+          </motion.section>
         </main>
       </div>
 

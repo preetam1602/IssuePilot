@@ -1,5 +1,15 @@
 import { Link, useLocation } from 'react-router-dom'
 import { LayoutDashboard, Search, User, Settings, Bookmark, History, TrendingUp } from 'lucide-react'
+import { motion } from 'framer-motion'
+
+const listVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.05, delayChildren: 0.1 } },
+}
+const itemVariants = {
+  hidden: { opacity: 0, x: -12 },
+  visible: { opacity: 1, x: 0 },
+}
 
 export default function Sidebar() {
   const location = useLocation()
@@ -18,63 +28,60 @@ export default function Sidebar() {
     { label: 'Settings', path: '/settings', icon: Settings, soon: true },
   ]
 
+  const renderItem = (item) =>
+    item.soon ? (
+      <motion.div key={item.path} variants={itemVariants} className="sidebar-link disabled">
+        <item.icon size={18} />
+        <span>{item.label}</span>
+        <span className="soon-badge">Soon</span>
+      </motion.div>
+    ) : (
+      <motion.div key={item.path} variants={itemVariants}>
+        <Link to={item.path} className={`sidebar-link ${isActive(item.path) ? 'active' : ''}`}>
+          {isActive(item.path) && (
+            <motion.div
+              layoutId="sidebar-active-pill"
+              className="sidebar-active-pill"
+              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+            />
+          )}
+          <item.icon size={18} style={{ position: 'relative', zIndex: 1 }} />
+          <span style={{ position: 'relative', zIndex: 1 }}>{item.label}</span>
+        </Link>
+      </motion.div>
+    )
+
   return (
     <aside className="sidebar hide-mobile">
-      <div className="sidebar-section">
+      <motion.div className="sidebar-section" variants={listVariants} initial="hidden" animate="visible">
         <div className="sidebar-label">Main Navigation</div>
-        <nav className="sidebar-nav">
-          {navItems.map((item) => (
-            item.soon ? (
-              <div key={item.path} className="sidebar-link disabled">
-                <item.icon size={18} />
-                <span>{item.label}</span>
-                <span className="soon-badge">Soon</span>
-              </div>
-            ) : (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`sidebar-link ${isActive(item.path) ? 'active' : ''}`}
-              >
-                <item.icon size={18} />
-                <span>{item.label}</span>
-              </Link>
-            )
-          ))}
-        </nav>
-      </div>
+        <nav className="sidebar-nav">{navItems.map(renderItem)}</nav>
+      </motion.div>
 
-      <div className="sidebar-section">
+      <motion.div className="sidebar-section" variants={listVariants} initial="hidden" animate="visible">
         <div className="sidebar-label">User</div>
-        <nav className="sidebar-nav">
-          {userItems.map((item) => (
-            item.soon ? (
-              <div key={item.path} className="sidebar-link disabled">
-                <item.icon size={18} />
-                <span>{item.label}</span>
-                <span className="soon-badge">Soon</span>
-              </div>
-            ) : (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`sidebar-link ${isActive(item.path) ? 'active' : ''}`}
-              >
-                <item.icon size={18} />
-                <span>{item.label}</span>
-              </Link>
-            )
-          ))}
-        </nav>
-      </div>
+        <nav className="sidebar-nav">{userItems.map(renderItem)}</nav>
+      </motion.div>
 
-      <div className="sidebar-footer">
+      <motion.div
+        className="sidebar-footer"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.4 }}
+      >
         <div className="card sidebar-promo">
           <h4>Pro Insights</h4>
           <p>Get advanced predictions with Pro.</p>
-          <button className="button button-primary" style={{ width: '100%', marginTop: 12 }}>Upgrade</button>
+          <motion.button
+            className="button button-primary"
+            style={{ width: '100%', marginTop: 12 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+          >
+            Upgrade
+          </motion.button>
         </div>
-      </div>
+      </motion.div>
 
       <style>{`
         .sidebar {
@@ -106,6 +113,7 @@ export default function Sidebar() {
           gap: 4px;
         }
         .sidebar-link {
+          position: relative;
           display: flex;
           align-items: center;
           gap: 12px;
@@ -115,7 +123,7 @@ export default function Sidebar() {
           color: var(--text-secondary);
           font-size: 14px;
           font-weight: 500;
-          transition: all 0.2s ease;
+          transition: color 0.2s ease;
         }
         .sidebar-link:hover {
           color: var(--text);
@@ -123,12 +131,18 @@ export default function Sidebar() {
         }
         .sidebar-link.active {
           color: var(--primary);
-          background: var(--border-light);
         }
         .sidebar-link.disabled {
           color: var(--muted);
           cursor: not-allowed;
           opacity: 0.55;
+        }
+        .sidebar-active-pill {
+          position: absolute;
+          inset: 0;
+          background: var(--border-light);
+          border-radius: 8px;
+          z-index: 0;
         }
         .soon-badge {
           margin-left: auto;
@@ -140,6 +154,8 @@ export default function Sidebar() {
           border-radius: 99px;
           border: 1px solid var(--border);
           color: var(--muted);
+          position: relative;
+          z-index: 1;
         }
         .sidebar-footer {
           margin-top: auto;

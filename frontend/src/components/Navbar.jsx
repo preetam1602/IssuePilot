@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { Github, LayoutDashboard, Search, User, Terminal, LogOut } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { signInWithGitHub, signOut } from '../lib/api'
 import { useProfile } from '../hooks/useProfile'
 
@@ -8,59 +9,92 @@ export default function Navbar() {
   const isActive = (path) => location.pathname === path
   const { data: profile } = useProfile()
 
+  const links = [
+    { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/issues', label: 'Explorer', icon: Search },
+  ]
+
   return (
-    <nav className="navbar">
+    <motion.nav
+      className="navbar"
+      initial={{ y: -72, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+    >
       <div className="navbar-container">
         <div className="navbar-left">
           <Link to="/" className="navbar-logo">
-            <div className="logo-icon">
+            <motion.div
+              className="logo-icon"
+              whileHover={{ rotate: -12, scale: 1.08 }}
+              whileTap={{ scale: 0.94 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+            >
               <Terminal size={20} />
-            </div>
+            </motion.div>
             <span>IssuePilot</span>
           </Link>
-          
+
           <div className="navbar-links">
-            <Link 
-              to="/dashboard" 
-              className={`nav-link ${isActive('/dashboard') ? 'active' : ''}`}
-            >
-              <LayoutDashboard size={18} />
-              <span>Dashboard</span>
-            </Link>
-            <Link 
-              to="/issues" 
-              className={`nav-link ${isActive('/issues') ? 'active' : ''}`}
-            >
-              <Search size={18} />
-              <span>Explorer</span>
-            </Link>
+            {links.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`nav-link ${isActive(item.path) ? 'active' : ''}`}
+              >
+                {isActive(item.path) && (
+                  <motion.div
+                    layoutId="nav-active-pill"
+                    className="nav-active-pill"
+                    transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                  />
+                )}
+                <item.icon size={18} style={{ position: 'relative', zIndex: 1 }} />
+                <span style={{ position: 'relative', zIndex: 1 }}>{item.label}</span>
+              </Link>
+            ))}
           </div>
         </div>
 
         <div className="navbar-right">
           {!profile && (
-            <button className="button button-secondary hide-mobile" onClick={signInWithGitHub}>
+            <motion.button
+              className="button button-secondary hide-mobile"
+              onClick={signInWithGitHub}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+            >
               <Github size={18} />
               <span>Sign in with GitHub</span>
-            </button>
+            </motion.button>
           )}
 
           {profile && (
-            <button className="button button-ghost hide-mobile" onClick={signOut}>
+            <motion.button
+              className="button button-ghost hide-mobile"
+              onClick={signOut}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+            >
               <LogOut size={16} />
               <span>Sign out</span>
-            </button>
+            </motion.button>
           )}
 
           <div className="navbar-actions">
             <Link to="/profile" className="avatar-link">
-              <div className="avatar">
+              <motion.div
+                className="avatar"
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+              >
                 {profile?.avatar_url ? (
                   <img src={profile.avatar_url} alt={profile.username} />
                 ) : (
                   <User size={20} />
                 )}
-              </div>
+              </motion.div>
             </Link>
           </div>
         </div>
@@ -113,6 +147,7 @@ export default function Navbar() {
           gap: 8px;
         }
         .nav-link {
+          position: relative;
           display: flex;
           align-items: center;
           gap: 8px;
@@ -122,15 +157,20 @@ export default function Navbar() {
           color: var(--text-secondary);
           font-size: 14px;
           font-weight: 500;
-          transition: all 0.2s ease;
+          transition: color 0.2s ease;
         }
         .nav-link:hover {
           color: var(--text);
-          background: var(--hover);
         }
         .nav-link.active {
           color: var(--primary);
+        }
+        .nav-active-pill {
+          position: absolute;
+          inset: 0;
           background: var(--border-light);
+          border-radius: 8px;
+          z-index: 0;
         }
         .avatar {
           width: 36px;
@@ -142,7 +182,6 @@ export default function Navbar() {
           align-items: center;
           justify-content: center;
           color: var(--text-secondary);
-          transition: all 0.2s ease;
           overflow: hidden;
         }
         .avatar img {
@@ -150,7 +189,7 @@ export default function Navbar() {
           height: 100%;
           object-fit: cover;
         }
-        .avatar:hover {
+        .avatar-link:hover .avatar {
           border-color: var(--primary);
           color: var(--primary);
         }
@@ -159,6 +198,6 @@ export default function Navbar() {
           .navbar-links { display: none; }
         }
       `}</style>
-    </nav>
+    </motion.nav>
   )
 }

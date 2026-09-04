@@ -1,8 +1,14 @@
 import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import Sidebar from '../components/Sidebar'
 import IssueCard from '../components/IssueCard'
 import { useIssues } from '../hooks/useIssues'
 import { Search } from 'lucide-react'
+
+const gridVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.06 } },
+}
 
 export default function IssueExplorer() {
   const [searchInput, setSearchInput] = useState('')
@@ -30,7 +36,13 @@ export default function IssueExplorer() {
         </header>
 
         <section className="search-section">
-          <form className="search-bar-container" onSubmit={submitSearch}>
+          <motion.form
+            className="search-bar-container"
+            onSubmit={submitSearch}
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
             <Search className="search-icon" size={20} />
             <input
               type="text"
@@ -39,8 +51,15 @@ export default function IssueExplorer() {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
-            <button type="submit" className="button button-primary">Search</button>
-          </form>
+            <motion.button
+              type="submit"
+              className="button button-primary"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              Search
+            </motion.button>
+          </motion.form>
 
           <div className="filters-bar">
             <div className="filter-group">
@@ -72,15 +91,24 @@ export default function IssueExplorer() {
             </div>
           </div>
 
-          <div className="issues-grid">
-            {isError && <p className="text-muted">Couldn't load issues.</p>}
-            {!isLoading && !isError && issues.length === 0 && (
-              <p className="text-muted">No issues match your search.</p>
-            )}
-            {issues.map(issue => (
-              <IssueCard key={issue.issue_id} issue={issue} />
-            ))}
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              className="issues-grid"
+              key={`${search}-${sort}-${difficulty}`}
+              variants={gridVariants}
+              initial="hidden"
+              animate="visible"
+              exit={{ opacity: 0 }}
+            >
+              {isError && <p className="text-muted">Couldn't load issues.</p>}
+              {!isLoading && !isError && issues.length === 0 && (
+                <p className="text-muted">No issues match your search.</p>
+              )}
+              {issues.map(issue => (
+                <IssueCard key={issue.issue_id} issue={issue} />
+              ))}
+            </motion.div>
+          </AnimatePresence>
         </section>
       </main>
 

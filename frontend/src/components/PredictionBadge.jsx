@@ -1,6 +1,9 @@
+import { motion } from 'framer-motion'
+import AnimatedNumber from './AnimatedNumber'
+
 export default function PredictionBadge({ probability = 0 }) {
   const p = Math.round(probability * 100)
-  
+
   let type = 'danger'
   if (p >= 80) type = 'success'
   else if (p >= 50) type = 'warning'
@@ -14,9 +17,15 @@ export default function PredictionBadge({ probability = 0 }) {
   const theme = colors[type]
 
   return (
-    <div className="prediction-badge" style={{ background: theme.bg, color: theme.text }}>
+    <motion.div
+      className="prediction-badge"
+      style={{ background: theme.bg, color: theme.text }}
+      initial={{ opacity: 0, scale: 0.85 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ type: 'spring', stiffness: 350, damping: 20 }}
+    >
       <div className="pulse-dot" style={{ background: theme.dot }} />
-      <span className="percentage">{p}%</span>
+      <span className="percentage"><AnimatedNumber value={p} suffix="%" /></span>
       <span className="label">Match</span>
 
       <style>{`
@@ -55,6 +64,6 @@ export default function PredictionBadge({ probability = 0 }) {
           letter-spacing: 0.05em;
         }
       `}</style>
-    </div>
+    </motion.div>
   )
 }

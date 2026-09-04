@@ -1,7 +1,14 @@
 import { Link } from 'react-router-dom'
 import { Zap, Star, GitFork } from 'lucide-react'
+import { motion } from 'framer-motion'
 import PredictionBadge from './PredictionBadge'
+import AnimatedNumber from './AnimatedNumber'
 import { difficultyLabel } from '../lib/format'
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } },
+}
 
 export default function IssueCard({ issue }) {
   const {
@@ -17,7 +24,11 @@ export default function IssueCard({ issue }) {
   } = issue
 
   return (
-    <article className="card issue-card">
+    <motion.article
+      className="card issue-card"
+      variants={cardVariants}
+      whileHover={{ y: -6, scale: 1.015, transition: { duration: 0.2 } }}
+    >
       <div className="card-header">
         <div className="repo-info">
           <span className="repo-name">{repo}</span>
@@ -31,7 +42,7 @@ export default function IssueCard({ issue }) {
 
       <div className="card-body">
         <h3 className="issue-title">{title}</h3>
-        
+
         <div className="labels-row">
           {labels.map((l) => (
             <span key={l} className="badge badge-outline">{l}</span>
@@ -42,7 +53,7 @@ export default function IssueCard({ issue }) {
         <div className="metrics-row">
           <div className="metric">
             <span className="metric-label">Beginner Score:</span>
-            <span className="metric-value text-success">{score}%</span>
+            <span className="metric-value text-success"><AnimatedNumber value={score} suffix="%" /></span>
           </div>
           <div className="metric">
             <span className="metric-label">Difficulty:</span>
@@ -52,9 +63,15 @@ export default function IssueCard({ issue }) {
       </div>
 
       <div className="card-footer">
-        <Link to={`/issues/${issue_id}`} className="button button-primary">
-          <Zap size={16} />
-          <span>View & Predict</span>
+        <Link to={`/issues/${issue_id}`}>
+          <motion.span
+            className="button button-primary"
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
+          >
+            <Zap size={16} />
+            <span>View & Predict</span>
+          </motion.span>
         </Link>
       </div>
 
@@ -152,7 +169,10 @@ export default function IssueCard({ issue }) {
           padding-top: 12px;
           border-top: 1px solid var(--border);
         }
+        .card-footer a {
+          text-decoration: none;
+        }
       `}</style>
-    </article>
+    </motion.article>
   )
 }
