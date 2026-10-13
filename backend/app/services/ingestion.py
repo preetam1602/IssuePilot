@@ -1,3 +1,4 @@
+from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
@@ -27,6 +28,7 @@ def ingest_issues(db: Session, repos_by_difficulty: dict[str, list[str]], token:
             for item in issues:
                 values = {
                     "github_issue_id": item["id"],
+                    "issue_number": item.get("number"),
                     "repo_full_name": repo,
                     "title": item["title"],
                     "body": item.get("body"),
@@ -49,6 +51,46 @@ def ingest_issues(db: Session, repos_by_difficulty: dict[str, list[str]], token:
             total += len(issues)
 
     return total
+
+
+
+def upsert_single_issue(db: Session, payload) -> tuple[Issue, bool]:
+    """Upsert one issue pushed from n8n, matched on repo (case-insensitive) + issue number."""
+    issue = db.execute(
+        select(Issue).where(
+            func.lower(Issue.repo_full_name) == payload.repository.strip().lower(),
+            Issue.issue_number == payload.number,
+        )
+    ).scalars().first()
+
+    values = {
+        "issue_number": payload.number,
+        "repo_full_name": payload.repository.strip(),
+        "title": payload.title,
+        "body": payload.description,
+        "url": payload.url,
+        "state": payload.state,
+        "labels": payload.labels,
+        "created_at": payload.created_at,
+        "llm_difficulty": payload.difficulty,
+        "llm_required_skills": payload.required_skills,
+        "llm_category": payload.category,
+        "llm_potential_blockers": payload.potential_blockers,
+    }
+    if payload.github_issue_id is not None:
+        values["github_issue_id"] = payload.github_issue_id
+
+    created = issue is None
+    if created:
+        issue = Issue(**values)
+        db.add(issue)
+    else:
+        for key, value in values.items():
+            setattr(issue, key, value)
+
+    db.commit()
+    db.refresh(issue)
+    return issue, created
 
 
 def ingest_contribution_events(db: Session, repos: list[str], token: str) -> int:

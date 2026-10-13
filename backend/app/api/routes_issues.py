@@ -58,6 +58,25 @@ def list_issues(
     }
 
 
+@router.get("/check")
+@router.get("/duplicate-check")
+def duplicate_check(repo: str, issue_number: int, db: Session = Depends(get_db)):
+    # GitHub repo names are case-insensitive, so compare lowercased.
+    issue = db.execute(
+        select(Issue).where(
+            func.lower(Issue.repo_full_name) == repo.strip().lower(),
+            Issue.issue_number == issue_number,
+        )
+    ).scalars().first()
+
+    return {
+        "exists": issue is not None,
+        "issue_id": str(issue.id) if issue else None,
+        "repo": repo,
+        "issue_number": issue_number,
+    }
+
+
 @router.get("/{issue_id}")
 def get_issue(issue_id: str, db: Session = Depends(get_db)):
     issue = db.get(Issue, issue_id)

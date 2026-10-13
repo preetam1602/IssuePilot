@@ -4,12 +4,14 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.session import get_db
 from app.services.github_client import discover_repos
-from app.services.ingestion import ingest_contribution_events, ingest_issues
+from app.services.ingestion import ingest_contribution_events, ingest_issues, upsert_single_issue
 from app.services.feature_loader import compute_and_store_features
 from app.services.scorer import run_nightly_scoring
 from app.schemas.admin import (
     BuildFeaturesResponse,
     IngestEventsResponse,
+    IngestIssueRequest,
+    IngestIssueResponse,
     IngestIssuesResponse,
     ScoreResponse,
 )
@@ -22,6 +24,12 @@ def admin_ingest_issues(db: Session = Depends(get_db)):
     repos_by_difficulty = discover_repos(settings.github_ingest_token)
     count = ingest_issues(db, repos_by_difficulty, settings.github_ingest_token)
     return {"issues_ingested": count}
+
+
+@router.post("/ingest-issue", response_model=IngestIssueResponse)
+def admin_ingest_issue(payload: IngestIssueRequest, db: Session = Depends(get_db)):
+    issue, created = upsert_single_issue(db, payload)
+    return {"id": issue.id, "created": created}
 
 
 @router.post("/ingest-events", response_model=IngestEventsResponse)

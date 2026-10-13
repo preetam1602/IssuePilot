@@ -47,7 +47,8 @@ class Issue(Base):
     __tablename__ = "issues"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
-    github_issue_id: Mapped[int] = mapped_column(BigInteger, unique=True, nullable=False)
+    github_issue_id: Mapped[int | None] = mapped_column(BigInteger, unique=True)
+    issue_number: Mapped[int | None] = mapped_column(Integer)
     repo_full_name: Mapped[str] = mapped_column(String, nullable=False)
     title: Mapped[str] = mapped_column(Text, nullable=False)
     body: Mapped[str | None] = mapped_column(Text)
@@ -58,6 +59,11 @@ class Issue(Base):
     repo_forks: Mapped[int] = mapped_column(Integer, default=0)
     language: Mapped[str | None] = mapped_column(String)
     difficulty: Mapped[str | None] = mapped_column(String)
+    url: Mapped[str | None] = mapped_column(String)
+    llm_difficulty: Mapped[str | None] = mapped_column(String)
+    llm_required_skills: Mapped[list[str] | None] = mapped_column(ARRAY(String))
+    llm_category: Mapped[str | None] = mapped_column(String)
+    llm_potential_blockers: Mapped[list[str] | None] = mapped_column(ARRAY(String))
     created_at: Mapped[object | None] = mapped_column(DateTime(timezone=True))
     closed_at: Mapped[object | None] = mapped_column(DateTime(timezone=True))
     fetched_at: Mapped[object] = mapped_column(DateTime(timezone=True), server_default=func.now())
