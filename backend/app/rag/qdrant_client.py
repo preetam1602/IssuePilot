@@ -7,7 +7,9 @@ from app.config import settings
 
 client=QdrantClient(
     host=settings.qdrant_host,
-    port=settings.qdrant_port
+    port=settings.qdrant_port,
+    api_key=settings.qdrant_api_key,
+    https=settings.qdrant_https,
 )
 
 collection_name=settings.qdrant_collection

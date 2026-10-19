@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import AnimatedNumber from './AnimatedNumber'
 
-export default function PredictionBadge({ probability = 0 }) {
+export default function PredictionBadge({ probability = 0, label = 'Match' }) {
   const p = Math.round(probability * 100)
 
   let type = 'danger'
@@ -26,7 +26,7 @@ export default function PredictionBadge({ probability = 0 }) {
     >
       <div className="pulse-dot" style={{ background: theme.dot }} />
       <span className="percentage"><AnimatedNumber value={p} suffix="%" /></span>
-      <span className="label">Match</span>
+      <span className="label">{label}</span>
 
       <style>{`
         .prediction-badge {

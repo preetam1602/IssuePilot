@@ -3,6 +3,7 @@ import PredictionBadge from '../components/PredictionBadge'
 import { useIssue } from '../hooks/useIssue'
 import { usePrediction } from '../hooks/usePrediction'
 import { timeAgo, scoreTier, difficultyLabel } from '../lib/format'
+import { isSignedIn, signInWithGitHub } from '../lib/api'
 import { Github, ExternalLink, MessageSquare, Clock, Code, BookOpen, CheckCircle2, Zap } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -10,6 +11,7 @@ export default function IssueDetail() {
   const { id } = useParams()
   const { data: issue, isLoading, isError } = useIssue(id)
   const prediction = usePrediction()
+  const signedIn = isSignedIn()
 
   if (isLoading) {
     return <div className="main-content"><p className="text-muted">Loading issue...</p></div>
@@ -152,7 +154,7 @@ export default function IssueDetail() {
             <motion.button
               className="button button-primary"
               style={{ width: '100%', marginTop: 24 }}
-              onClick={() => prediction.mutate(id)}
+              onClick={() => (signedIn ? prediction.mutate(id) : signInWithGitHub())}
               disabled={prediction.isPending}
               whileHover={{ scale: prediction.isPending ? 1 : 1.02 }}
               whileTap={{ scale: prediction.isPending ? 1 : 0.98 }}
@@ -160,7 +162,9 @@ export default function IssueDetail() {
               transition={prediction.isPending ? { repeat: Infinity, duration: 1.2 } : {}}
             >
               <Zap size={18} />
-              <span>{prediction.isPending ? 'Analyzing...' : 'Can I solve this?'}</span>
+              <span>
+                {!signedIn ? 'Sign in to predict' : prediction.isPending ? 'Analyzing...' : 'Can I solve this?'}
+              </span>
             </motion.button>
             {prediction.isError && <p className="text-muted text-small">Prediction failed. Try again.</p>}
 

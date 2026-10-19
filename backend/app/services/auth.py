@@ -1,7 +1,8 @@
+import secrets
 from datetime import datetime, timedelta, timezone
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
@@ -10,6 +11,7 @@ from app.models import User
 from app.session import get_db
 
 bearer_scheme = HTTPBearer(auto_error=False)
+admin_key_scheme = APIKeyHeader(name="X-Admin-Key", auto_error=False)
 
 
 def create_access_token(user_id: str) -> str:
@@ -39,3 +41,9 @@ def get_current_user(
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "User not found")
 
     return user
+
+
+def require_admin(api_key: str | None = Depends(admin_key_scheme)) -> None:
+    # Fails closed: with no ADMIN_API_KEY configured, nobody gets in.
+    if not settings.admin_api_key or not api_key or not secrets.compare_digest(api_key, settings.admin_api_key):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Admin access required")

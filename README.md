@@ -68,11 +68,15 @@ Open `http://localhost:5173`.
 
 ## Populating data
 
-The app needs real GitHub issues before recommendations/search are useful. Repos are discovered dynamically (not hardcoded) across three difficulty tiers by star count, biased toward repos actively tagging "good first issue" work. Trigger it via the interactive API docs at `http://localhost:8000/docs`, in order:
+The app needs real GitHub issues before recommendations/search are useful. Repos are discovered dynamically (not hardcoded) across three difficulty tiers by star count, biased toward repos actively tagging "good first issue" work.
 
-1. `POST /admin/ingest-issues` — discovers repos, ingests their open issues
-2. `POST /admin/build-features` — computes complexity/popularity scores and embeds each issue into Qdrant
-3. `POST /admin/ingest-events` — ingests recent merged-PR history (grounds the prediction agent)
+Admin endpoints require the `X-Admin-Key` header to match `ADMIN_API_KEY` in `backend/.env` (they reject everything while it's unset). In the interactive docs at `http://localhost:8000/docs`, click **Authorize** and paste the key. Each job runs in the background and returns `202` immediately, so watch the server log for its result. Only one job runs at a time (a second call gets `409`). Run them in order, waiting for each to finish:
+
+1. `POST /admin/ingest-issues`: discovers repos, ingests their open issues, marks issues that are no longer open as closed
+2. `POST /admin/build-features`: embeds new or changed issues into Qdrant and refreshes complexity/popularity scores
+3. `POST /admin/ingest-events`: ingests recent merged-PR history (grounds the prediction agent)
+
+`POST /rag/ingest` also needs the admin key, and its `file_path` is relative to `RAG_DOCUMENTS_DIR` (default `backend/data/documents`).
 
 ## API overview
 
@@ -85,7 +89,9 @@ The app needs real GitHub issues before recommendations/search are useful. Repos
 | GET | `/recommend` | required | Personalized recommendations (cached, computed on demand on cache miss) |
 | POST | `/predict` | required | Runs the LangGraph/Groq agent, caches the result |
 | GET | `/profile` | required | Current user's profile, derived stats, skills |
-| POST | `/admin/*` | — | Ingestion/scoring triggers (see above) |
+| POST | `/admin/*` | admin key | Ingestion/scoring triggers (see above) |
+| POST | `/rag/search` | required | Search ingested documents |
+| POST | `/rag/ingest` | admin key | Ingest a PDF from `RAG_DOCUMENTS_DIR` |
 | GET | `/health/db`, `/health/qdrant` | — | Connectivity checks |
 
 Full interactive docs at `/docs` once the backend is running.
@@ -93,4 +99,15 @@ Full interactive docs at `/docs` once the backend is running.
 ## Notes
 
 - The GitHub OAuth callback derives your skill profile automatically from your public repos' languages — no manual setup needed once you sign in.
-- A background scheduler (APScheduler) runs nightly scoring and a weekly repo/event refresh; toggle with `SCHEDULER_ENABLED` in `backend/.env`.
+- A background scheduler (APScheduler) runs nightly scoring and a weekly refresh (issues, events, embeddings, scores); toggle with `SCHEDULER_ENABLED` in `backend/.env`. Jobs take a Postgres advisory lock, so running several uvicorn workers is safe: only one worker runs each job.
+- Issues pushed through `POST /admin/ingest-issue` are embedded right away, so they show up in recommendations without waiting for the next `build-features` run.
+- Success predictions are cached per user/issue for `PREDICTION_TTL_HOURS` (default 72), or until the issue changes.
+- If your Qdrant server was started with an API key, set `QDRANT_API_KEY` in `backend/.env`.
+
+## Tests
+
+```bash
+cd backend
+pip install -r requirements-dev.txt
+pytest
+```

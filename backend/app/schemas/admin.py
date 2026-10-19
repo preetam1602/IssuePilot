@@ -4,20 +4,9 @@ from datetime import datetime
 from pydantic import BaseModel, field_validator
 
 
-class IngestIssuesResponse(BaseModel):
-    issues_ingested: int
-
-
-class IngestEventsResponse(BaseModel):
-    events_ingested: int
-
-
-class BuildFeaturesResponse(BaseModel):
-    issues_featurized: int
-
-
-class ScoreResponse(BaseModel):
-    scores_written: int
+class JobStartedResponse(BaseModel):
+    job: str
+    status: str
 
 
 def _as_str_list(value):

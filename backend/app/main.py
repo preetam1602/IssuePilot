@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -14,6 +15,8 @@ from app.api.routes_recommend import router as recommend_router
 from app.api.routes_predict import router as predict_router
 from app.api.routes_profile import router as profile_router
 
+logging.basicConfig(level=logging.DEBUG if settings.debug else logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
@@ -29,7 +32,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[settings.frontend_url],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

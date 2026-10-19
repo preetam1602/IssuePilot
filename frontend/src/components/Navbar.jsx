@@ -1,13 +1,13 @@
 import { Link, useLocation } from 'react-router-dom'
 import { Github, LayoutDashboard, Search, User, Terminal, LogOut } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { signInWithGitHub, signOut } from '../lib/api'
+import { isSignedIn, signInWithGitHub, signOut } from '../lib/api'
 import { useProfile } from '../hooks/useProfile'
 
 export default function Navbar() {
   const location = useLocation()
   const isActive = (path) => location.pathname === path
-  const { data: profile } = useProfile()
+  const { data: profile } = useProfile({ enabled: isSignedIn() })
 
   const links = [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },

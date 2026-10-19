@@ -7,12 +7,14 @@ from sqlalchemy import (
     DateTime,
     Float,
     ForeignKey,
+    Index,
     Integer,
     SmallInteger,
     String,
     Text,
     UniqueConstraint,
     func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
@@ -29,6 +31,10 @@ class User(Base):
     email: Mapped[str | None] = mapped_column(String)
     avatar_url: Mapped[str | None] = mapped_column(String)
     bio: Mapped[str | None] = mapped_column(Text)
+    location: Mapped[str | None] = mapped_column(String)
+    website: Mapped[str | None] = mapped_column(String)
+    twitter_username: Mapped[str | None] = mapped_column(String)
+    total_stars: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     created_at: Mapped[object] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -36,15 +42,27 @@ class UserSkill(Base):
     __tablename__ = "user_skills"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True)
     language: Mapped[str] = mapped_column(String, nullable=False)
     domain: Mapped[str | None] = mapped_column(String)
     level: Mapped[int] = mapped_column(SmallInteger, default=1)
+    repo_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     created_at: Mapped[object] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class Issue(Base):
     __tablename__ = "issues"
+    __table_args__ = (
+        # Trigram indexes let the explorer's ILIKE '%term%' search use an index.
+        Index("ix_issues_title_trgm", "title", postgresql_using="gin", postgresql_ops={"title": "gin_trgm_ops"}),
+        Index(
+            "ix_issues_repo_full_name_trgm",
+            "repo_full_name",
+            postgresql_using="gin",
+            postgresql_ops={"repo_full_name": "gin_trgm_ops"},
+        ),
+        Index("ix_issues_created_at", "created_at"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
     github_issue_id: Mapped[int | None] = mapped_column(BigInteger, unique=True)
@@ -69,10 +87,15 @@ class Issue(Base):
     fetched_at: Mapped[object] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
+# Repo + number lookups compare lowercased repo names.
+Index("ix_issues_lower_repo_issue_number", func.lower(Issue.repo_full_name), Issue.issue_number)
+
+
 class ContributionEvent(Base):
     __tablename__ = "contribution_events"
     __table_args__ = (
-        UniqueConstraint("github_user_id", "pr_number", name="uq_contribution_events_user_pr"),
+        # PR numbers are only unique within a repo, so the repo is part of the key.
+        UniqueConstraint("github_user_id", "repo_full_name", "pr_number", name="uq_contribution_events_user_repo_pr"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
@@ -109,7 +132,10 @@ class Feature(Base):
 
 class Prediction(Base):
     __tablename__ = "predictions"
-    __table_args__ = (UniqueConstraint("user_id", "issue_id", name="uq_predictions_user_issue"),)
+    __table_args__ = (
+        UniqueConstraint("user_id", "issue_id", name="uq_predictions_user_issue"),
+        Index("ix_predictions_user_relevance", "user_id", text("relevance_score DESC NULLS LAST")),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
@@ -117,6 +143,7 @@ class Prediction(Base):
     relevance_score: Mapped[float | None] = mapped_column(Float)
     success_prob: Mapped[float | None] = mapped_column(Float)
     difficulty_tag: Mapped[str | None] = mapped_column(String)
+    predicted_at: Mapped[object | None] = mapped_column(DateTime(timezone=True))
     scored_at: Mapped[object] = mapped_column(DateTime(timezone=True), server_default=func.now())
     score_version: Mapped[str | None] = mapped_column(String)
     created_at: Mapped[object] = mapped_column(DateTime(timezone=True), server_default=func.now())

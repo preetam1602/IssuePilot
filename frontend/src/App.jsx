@@ -9,6 +9,10 @@ import IssueDetail from './pages/IssueDetail'
 import Profile from './pages/Profile'
 import { isSignedIn } from './lib/api'
 
+function RequireAuth({ children }) {
+  return isSignedIn() ? children : <Navigate to="/landing" replace />
+}
+
 function PageTransition({ children }) {
   return (
     <motion.div
@@ -33,10 +37,10 @@ export default function App() {
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<Navigate to={isSignedIn() ? '/dashboard' : '/landing'} replace />} />
           <Route path="/landing" element={<PageTransition><Landing /></PageTransition>} />
-          <Route path="/dashboard" element={<PageTransition><Dashboard /></PageTransition>} />
+          <Route path="/dashboard" element={<RequireAuth><PageTransition><Dashboard /></PageTransition></RequireAuth>} />
           <Route path="/issues" element={<PageTransition><IssueExplorer /></PageTransition>} />
           <Route path="/issues/:id" element={<PageTransition><IssueDetail /></PageTransition>} />
-          <Route path="/profile" element={<PageTransition><Profile /></PageTransition>} />
+          <Route path="/profile" element={<RequireAuth><PageTransition><Profile /></PageTransition></RequireAuth>} />
         </Routes>
       </AnimatePresence>
     </div>

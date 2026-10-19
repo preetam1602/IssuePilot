@@ -1,33 +1,36 @@
-import os
+from functools import lru_cache
 
-from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
 
-load_dotenv()
+from app.config import settings
 
 MODEL_NAME = "BAAI/bge-small-en-v1.5"
-HF_TOKEN = os.getenv("HF_TOKEN")
 
 
-model=SentenceTransformer(
-    MODEL_NAME,
-    token=HF_TOKEN,
-    device="cpu"
-)
+@lru_cache(maxsize=1)
+def get_model() -> SentenceTransformer:
+    # Loaded on first use rather than at import, so processes that never embed
+    # (and app startup) don't pay for it.
+    return SentenceTransformer(
+        MODEL_NAME,
+        token=settings.hf_token,
+        device="cpu"
+    )
+
 
 def embed_text(text:str)->list[float]:
-    embedding=model.encode(
+    embedding=get_model().encode(
         text,
         normalize_embeddings=True
     )
     return embedding.tolist()
 
 def embed_texts(texts: list[str]) -> list[list[float]]:
-    embeddings = model.encode(
+    embeddings = get_model().encode(
         texts,
-        batch_size=4,
+        batch_size=32,
         normalize_embeddings=True,
-        show_progress_bar=True
+        show_progress_bar=len(texts) > 100
     )
 
     return embeddings.tolist()

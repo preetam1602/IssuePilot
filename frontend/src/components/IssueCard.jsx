@@ -10,7 +10,7 @@ const cardVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } },
 }
 
-export default function IssueCard({ issue }) {
+export default function IssueCard({ issue, scoreLabel = 'Match' }) {
   const {
     issue_id,
     title,
@@ -37,7 +37,7 @@ export default function IssueCard({ issue }) {
             <span className="stat"><GitFork size={12} /> {forks}</span>
           </div>
         </div>
-        <PredictionBadge probability={score / 100} />
+        <PredictionBadge probability={score / 100} label={scoreLabel} />
       </div>
 
       <div className="card-body">
@@ -52,7 +52,7 @@ export default function IssueCard({ issue }) {
 
         <div className="metrics-row">
           <div className="metric">
-            <span className="metric-label">Beginner Score:</span>
+            <span className="metric-label">{scoreLabel}:</span>
             <span className="metric-value text-success"><AnimatedNumber value={score} suffix="%" /></span>
           </div>
           <div className="metric">

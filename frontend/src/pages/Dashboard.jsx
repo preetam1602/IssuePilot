@@ -11,10 +11,6 @@ const feedVariants = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.1 } },
 }
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } },
-}
 
 function trendingRepos(recommendations) {
   const counts = new Map()
@@ -79,7 +75,7 @@ export default function Dashboard() {
                 <p className="text-muted">No recommendations yet — add some skills to your profile.</p>
               )}
               {topRecommendations.map(issue => (
-                <IssueCard key={issue.issue_id} issue={issue} />
+                <IssueCard key={issue.issue_id} issue={issue} scoreLabel="Match" />
               ))}
             </motion.div>
           </div>

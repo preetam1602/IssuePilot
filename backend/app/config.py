@@ -4,13 +4,15 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     app_name: str = "Issue Pilot"
     app_env: str = "development"
-    debug: bool = True
+    debug: bool = False
 
     database_url: str
     db_pool_size: int = 10
 
     qdrant_host: str = "localhost"
     qdrant_port: int = 6333
+    qdrant_api_key: str | None = None
+    qdrant_https: bool = False
     qdrant_collection: str = "issuepilot_knowledge"
     qdrant_issues_collection: str = "issue_embeddings"
 
@@ -29,8 +31,19 @@ class Settings(BaseSettings):
 
     groq_api_key: str
     agent_model: str = "openai/gpt-oss-120b"
+    agent_timeout_seconds: float = 30.0
+
+    # A stored success prediction is reused for this long, unless the issue changes first.
+    prediction_ttl_hours: int = 72
 
     scheduler_enabled: bool = True
+
+    # Shared secret for /admin/* and /rag/ingest, sent as the X-Admin-Key header.
+    # Left unset, those endpoints reject every request.
+    admin_api_key: str | None = None
+
+    # /rag/ingest only reads PDFs from inside this directory.
+    rag_documents_dir: str = "data/documents"
 
     model_config = SettingsConfigDict(
         env_file=".env",

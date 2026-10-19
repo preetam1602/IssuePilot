@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -15,14 +15,18 @@ def _query_predictions(db: Session, user_id: str, limit: int):
         select(Prediction, Issue, Feature)
         .join(Issue, Issue.id == Prediction.issue_id)
         .outerjoin(Feature, Feature.issue_id == Issue.id)
-        .where(Prediction.user_id == user_id)
+        .where(
+            Prediction.user_id == user_id,
+            Prediction.relevance_score.isnot(None),
+            Issue.state.is_distinct_from("closed"),
+        )
         .order_by(Prediction.relevance_score.desc())
         .limit(limit)
     ).all()
 
 
 @router.get("")
-def get_recommendations(limit: int = 20, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def get_recommendations(limit: int = Query(20, ge=1, le=50), user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     rows = _query_predictions(db, user.id, limit)
 
     if not rows:

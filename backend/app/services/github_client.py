@@ -1,6 +1,10 @@
+import logging
+import time
 from datetime import datetime
 
 import httpx
+
+logger = logging.getLogger(__name__)
 
 GITHUB_API = "https://api.github.com"
 
@@ -12,9 +16,56 @@ DIFFICULTY_TIERS = [
     ("hard", "stars:>20000"),
 ]
 
+DIFFICULTY_LEVELS = [difficulty for difficulty, _ in DIFFICULTY_TIERS]
+
 
 def _headers(token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"}
+
+
+MAX_ATTEMPTS = 4
+# Waiting out a rate-limit reset longer than this isn't worth stalling a job for.
+MAX_RATE_LIMIT_WAIT_SECONDS = 15 * 60
+
+
+class GitHubRateLimited(httpx.HTTPError):
+    pass
+
+
+def _rate_limit_wait(resp: httpx.Response) -> float | None:
+    """Seconds GitHub asks us to wait, or None if this response isn't a rate limit."""
+    if resp.status_code not in (403, 429):
+        return None
+    if "retry-after" in resp.headers:
+        return float(resp.headers["retry-after"])
+    if resp.headers.get("x-ratelimit-remaining") == "0":
+        return max(0.0, float(resp.headers.get("x-ratelimit-reset", time.time())) - time.time()) + 1
+    return None
+
+
+def _get(client: httpx.Client, url: str, **kwargs) -> httpx.Response:
+    """GET with retries on network errors and 5xx, and waits on GitHub rate limits."""
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        try:
+            resp = client.get(url, **kwargs)
+        except httpx.TransportError:
+            if attempt == MAX_ATTEMPTS:
+                raise
+            time.sleep(2 ** attempt)
+            continue
+
+        wait = _rate_limit_wait(resp)
+        if wait is not None:
+            if wait > MAX_RATE_LIMIT_WAIT_SECONDS or attempt == MAX_ATTEMPTS:
+                raise GitHubRateLimited(f"GitHub rate limit hit on {url}; resets in {wait:.0f}s")
+            logger.warning("GitHub rate limit hit, waiting %.0fs", wait)
+            time.sleep(wait)
+            continue
+        if resp.status_code >= 500 and attempt < MAX_ATTEMPTS:
+            time.sleep(2 ** attempt)
+            continue
+        return resp
+    raise AssertionError("unreachable")
 
 
 def difficulty_for_stars(stars: int | None) -> str:
@@ -36,7 +87,8 @@ def discover_repos(token: str, per_tier: int = 10) -> dict[str, list[str]]:
     repos_by_difficulty = {}
     with httpx.Client(timeout=30.0, follow_redirects=True) as client:
         for difficulty, star_range in DIFFICULTY_TIERS:
-            resp = client.get(
+            resp = _get(
+                client,
                 f"{GITHUB_API}/search/repositories",
                 headers=_headers(token),
                 params={
@@ -60,27 +112,31 @@ def parse_gh_datetime(value: str | None) -> datetime | None:
 
 def fetch_repo_metadata(repo: str, token: str) -> dict:
     with httpx.Client(timeout=30.0, follow_redirects=True) as client:
-        resp = client.get(f"{GITHUB_API}/repos/{repo}", headers=_headers(token))
+        resp = _get(client, f"{GITHUB_API}/repos/{repo}", headers=_headers(token))
         resp.raise_for_status()
         return resp.json()
 
 
-def fetch_issues(repo: str, token: str, per_page: int = 100, max_pages: int = 5) -> list[dict]:
-    """Fetch open issues for a repo, excluding pull requests (GitHub's /issues endpoint includes both)."""
+def fetch_issues(repo: str, token: str, per_page: int = 100, max_pages: int = 5) -> tuple[list[dict], bool]:
+    """
+    Fetch open issues for a repo, excluding pull requests (GitHub's /issues endpoint includes both).
+    Returns (issues, complete); complete is False when max_pages cut the listing short.
+    """
     issues = []
     with httpx.Client(timeout=30.0, follow_redirects=True) as client:
         for page in range(1, max_pages + 1):
-            resp = client.get(
+            resp = _get(
+                client,
                 f"{GITHUB_API}/repos/{repo}/issues",
                 headers=_headers(token),
                 params={"state": "open", "per_page": per_page, "page": page},
             )
             resp.raise_for_status()
             batch = resp.json()
-            if not batch:
-                break
             issues.extend(item for item in batch if "pull_request" not in item)
-    return issues
+            if len(batch) < per_page:
+                return issues, True
+    return issues, False
 
 
 def fetch_contribution_events(repo: str, token: str, max_pages: int = 10) -> list[dict]:
@@ -91,7 +147,8 @@ def fetch_contribution_events(repo: str, token: str, max_pages: int = 10) -> lis
     events = []
     with httpx.Client(timeout=30.0, follow_redirects=True) as client:
         for page in range(1, max_pages + 1):
-            resp = client.get(
+            resp = _get(
+                client,
                 f"{GITHUB_API}/repos/{repo}/events",
                 headers=_headers(token),
                 params={"per_page": 100, "page": page},

@@ -1,7 +1,7 @@
 import uuid
 from typing import Any
 
-from qdrant_client.models import Distance, VectorParams, PointStruct
+from qdrant_client.models import Distance, PointStruct, QueryRequest, VectorParams
 
 from app.config import settings
 from app.rag.qdrant_client import get_qdrant_client
@@ -24,7 +24,10 @@ def ensure_issue_collection():
         )
 
 
-def upsert_issue_embedding(issue_id: str, embedding: list[float]) -> None:
+def upsert_issue_embeddings(items: list[tuple[str, list[float]]]) -> None:
+    """Upsert (issue_id, embedding) pairs in a single Qdrant request."""
+    if not items:
+        return
     client = get_qdrant_client()
     client.upsert(
         collection_name=collection_name,
@@ -34,6 +37,7 @@ def upsert_issue_embedding(issue_id: str, embedding: list[float]) -> None:
                 vector=embedding,
                 payload={"issue_id": issue_id},
             )
+            for issue_id, embedding in items
         ],
     )
 
@@ -49,4 +53,19 @@ def search_issues(query_embedding: list[float], top_k: int = 50) -> list[dict[st
     return [
         {"issue_id": point.payload["issue_id"], "similarity": point.score}
         for point in results.points
+    ]
+
+
+def search_issues_batch(query_embeddings: list[list[float]], top_k: int = 50) -> list[list[dict[str, Any]]]:
+    """Run several searches in one Qdrant request; results line up with query_embeddings."""
+    if not query_embeddings:
+        return []
+    client = get_qdrant_client()
+    responses = client.query_batch_points(
+        collection_name=collection_name,
+        requests=[QueryRequest(query=embedding, limit=top_k, with_payload=True) for embedding in query_embeddings],
+    )
+    return [
+        [{"issue_id": point.payload["issue_id"], "similarity": point.score} for point in response.points]
+        for response in responses
     ]

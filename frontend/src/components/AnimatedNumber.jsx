@@ -8,7 +8,7 @@ export default function AnimatedNumber({ value = 0, suffix = '', duration = 1 })
   useEffect(() => {
     const controls = animate(motionValue, value, { duration, ease: 'easeOut' })
     return controls.stop
-  }, [value])
+  }, [motionValue, value, duration])
 
   return <motion.span>{rounded}</motion.span>
 }

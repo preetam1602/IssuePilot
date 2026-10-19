@@ -3,7 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Sidebar from '../components/Sidebar'
 import IssueCard from '../components/IssueCard'
 import { useIssues } from '../hooks/useIssues'
-import { Search } from 'lucide-react'
+import { Search, ChevronLeft, ChevronRight } from 'lucide-react'
+
+const PAGE_SIZE = 20
 
 const gridVariants = {
   hidden: {},
@@ -15,14 +17,36 @@ export default function IssueExplorer() {
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState('best_match')
   const [difficulty, setDifficulty] = useState('')
+  const [page, setPage] = useState(1)
 
-  const { data, isLoading, isError } = useIssues({ search, sort, difficulty })
+  const { data, isLoading, isError, isPlaceholderData } = useIssues({
+    search,
+    sort,
+    difficulty,
+    limit: PAGE_SIZE,
+    offset: (page - 1) * PAGE_SIZE,
+  })
   const issues = data?.issues ?? []
   const total = data?.total ?? issues.length
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
+  // Any change to what's being listed starts again from the first page.
   const submitSearch = (e) => {
     e.preventDefault()
     setSearch(searchInput.trim())
+    setPage(1)
+  }
+  const changeSort = (value) => {
+    setSort(value)
+    setPage(1)
+  }
+  const changeDifficulty = (value) => {
+    setDifficulty(value)
+    setPage(1)
+  }
+  const goToPage = (next) => {
+    setPage(next)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   return (
@@ -66,7 +90,7 @@ export default function IssueExplorer() {
               <select
                 className="filter-select"
                 value={difficulty}
-                onChange={(e) => setDifficulty(e.target.value)}
+                onChange={(e) => changeDifficulty(e.target.value)}
               >
                 <option value="">Difficulty: All</option>
                 <option value="easy">Beginner</option>
@@ -82,11 +106,11 @@ export default function IssueExplorer() {
             <span>{isLoading ? 'Loading issues...' : `Showing ${total} issues`}</span>
             <div className="sort-by">
               <span className="text-muted">Sort by:</span>
-              <select className="sort-select" value={sort} onChange={(e) => setSort(e.target.value)}>
+              <select className="sort-select" value={sort} onChange={(e) => changeSort(e.target.value)}>
                 <option value="best_match">Best Match</option>
                 <option value="newest">Newest</option>
                 <option value="difficulty_asc">Difficulty (Low to High)</option>
-                <option value="score_desc">Score (High to Low)</option>
+                <option value="score_desc">Popularity (High to Low)</option>
               </select>
             </div>
           </div>
@@ -94,7 +118,7 @@ export default function IssueExplorer() {
           <AnimatePresence mode="wait">
             <motion.div
               className="issues-grid"
-              key={`${search}-${sort}-${difficulty}`}
+              key={`${search}-${sort}-${difficulty}-${page}`}
               variants={gridVariants}
               initial="hidden"
               animate="visible"
@@ -105,10 +129,32 @@ export default function IssueExplorer() {
                 <p className="text-muted">No issues match your search.</p>
               )}
               {issues.map(issue => (
-                <IssueCard key={issue.issue_id} issue={issue} />
+                <IssueCard key={issue.issue_id} issue={issue} scoreLabel="Popularity" />
               ))}
             </motion.div>
           </AnimatePresence>
+
+          {pageCount > 1 && (
+            <nav className="pagination" aria-label="Issue pages">
+              <button
+                className="button button-ghost"
+                onClick={() => goToPage(page - 1)}
+                disabled={page <= 1 || isPlaceholderData}
+              >
+                <ChevronLeft size={16} />
+                <span>Previous</span>
+              </button>
+              <span className="text-muted">Page {page} of {pageCount}</span>
+              <button
+                className="button button-ghost"
+                onClick={() => goToPage(page + 1)}
+                disabled={page >= pageCount || isPlaceholderData}
+              >
+                <span>Next</span>
+                <ChevronRight size={16} />
+              </button>
+            </nav>
+          )}
         </section>
       </main>
 
@@ -218,6 +264,18 @@ export default function IssueExplorer() {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
           gap: 24px;
+        }
+        .pagination {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 16px;
+          margin-top: 32px;
+          font-size: 14px;
+        }
+        .pagination .button:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
         }
         @media (max-width: 1024px) {
           .issues-grid { grid-template-columns: 1fr; }
