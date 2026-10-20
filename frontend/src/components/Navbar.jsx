@@ -16,7 +16,7 @@ export default function Navbar() {
 
   return (
     <motion.nav
-      className="navbar"
+      className={`navbar ${location.pathname === '/landing' ? 'navbar-landing' : ''}`}
       initial={{ y: -72, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
@@ -108,6 +108,10 @@ export default function Navbar() {
           background: var(--navbar-bg);
           backdrop-filter: var(--glass);
           border-bottom: 1px solid var(--border);
+        }
+        .navbar-landing {
+          background: rgba(5, 11, 8, 0.85);
+          border-bottom-color: #24352C;
         }
         .navbar-container {
           max-width: var(--container-max);

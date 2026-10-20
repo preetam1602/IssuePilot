@@ -35,7 +35,8 @@ export default function App() {
 
   return (
     <div>
-      <AnimatedBackground />
+      {/* The landing page has its own restrained glow. */}
+      {location.pathname !== '/landing' && <AnimatedBackground />}
       <Navbar />
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
