@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import Sidebar from '../components/Sidebar'
 import IssueCard from '../components/IssueCard'
@@ -13,8 +14,11 @@ const gridVariants = {
 }
 
 export default function IssueExplorer() {
-  const [searchInput, setSearchInput] = useState('')
-  const [search, setSearch] = useState('')
+  // Other pages (e.g. Trending) link here with ?search= to open pre-filtered.
+  const [searchParams] = useSearchParams()
+  const initialSearch = searchParams.get('search') ?? ''
+  const [searchInput, setSearchInput] = useState(initialSearch)
+  const [search, setSearch] = useState(initialSearch)
   const [sort, setSort] = useState('best_match')
   const [difficulty, setDifficulty] = useState('')
   const [page, setPage] = useState(1)

@@ -106,7 +106,10 @@ export default function Dashboard() {
             </div>
 
             <div className="card widget">
-              <h4>Trending Repositories</h4>
+              <div className="widget-heading">
+                <h4>Trending Repositories</h4>
+                <Link to="/trending" className="text-small widget-link">See all</Link>
+              </div>
               <div className="trending-list">
                 {trending.length === 0 && <p className="text-muted text-small">No data yet.</p>}
                 {trending.map(({ repo, count }, i) => (
@@ -185,6 +188,8 @@ export default function Dashboard() {
           color: var(--muted);
           margin-bottom: 16px;
         }
+        .widget-heading { display: flex; justify-content: space-between; align-items: baseline; }
+        .widget-link { color: var(--primary); text-decoration: none; }
         .skills-list {
           display: flex;
           gap: 8px;

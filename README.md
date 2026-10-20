@@ -15,7 +15,7 @@ AI-powered issue recommendations and contribution-success predictions for open-s
 ```
 backend/
   app/
-    api/            # FastAPI routers (auth, issues, recommend, predict, profile, rag, admin, health)
+    api/            # FastAPI routers (auth, issues, recommend, predict, profile, saved, history, trending, settings, rag, admin, health)
     services/        # GitHub ingestion, feature engineering, retrieval, agent, scoring, auth
     rag/             # Embedding model, Qdrant clients, document-RAG pipeline
     models.py         # SQLAlchemy models
@@ -89,6 +89,11 @@ Admin endpoints require the `X-Admin-Key` header to match `ADMIN_API_KEY` in `ba
 | GET | `/recommend` | required | Personalized recommendations (cached, computed on demand on cache miss) |
 | POST | `/predict` | required | Runs the LangGraph/Groq agent, caches the result |
 | GET | `/profile` | required | Current user's profile, derived stats, skills |
+| GET/POST/DELETE | `/saved` | required | Saved issues with Claim Radar status (open, quiet, contested, closed) |
+| GET | `/history` | required | Growth Path: checked issues + merged PRs by difficulty, current level, next step |
+| GET | `/trending?days=7` | — | Newcomer Heat: repos ranked by new issues, merges and first-time contributors |
+| GET/PUT | `/settings/matcher` | required | Matcher preferences (boost/mute languages, comfort difficulty, freshness) |
+| POST | `/settings/matcher/preview` | required | Top 5 recommendations under unsaved preferences |
 | POST | `/admin/*` | admin key | Ingestion/scoring triggers (see above) |
 | POST | `/rag/search` | required | Search ingested documents |
 | POST | `/rag/ingest` | admin key | Ingest a PDF from `RAG_DOCUMENTS_DIR` |

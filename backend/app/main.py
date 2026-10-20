@@ -14,6 +14,10 @@ from app.api.routes_issues import router as issues_router
 from app.api.routes_recommend import router as recommend_router
 from app.api.routes_predict import router as predict_router
 from app.api.routes_profile import router as profile_router
+from app.api.routes_saved import router as saved_router
+from app.api.routes_history import router as history_router
+from app.api.routes_trending import router as trending_router
+from app.api.routes_settings import router as settings_router
 
 logging.basicConfig(level=logging.DEBUG if settings.debug else logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
@@ -46,6 +50,10 @@ app.include_router(issues_router)
 app.include_router(recommend_router)
 app.include_router(predict_router)
 app.include_router(profile_router)
+app.include_router(saved_router)
+app.include_router(history_router)
+app.include_router(trending_router)
+app.include_router(settings_router)
 
 @app.get("/")
 def root():

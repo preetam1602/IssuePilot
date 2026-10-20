@@ -7,6 +7,10 @@ import Dashboard from './pages/Dashboard'
 import IssueExplorer from './pages/IssueExplorer'
 import IssueDetail from './pages/IssueDetail'
 import Profile from './pages/Profile'
+import SavedIssues from './pages/SavedIssues'
+import History from './pages/History'
+import Trending from './pages/Trending'
+import Settings from './pages/Settings'
 import { isSignedIn } from './lib/api'
 
 function RequireAuth({ children }) {
@@ -41,6 +45,10 @@ export default function App() {
           <Route path="/issues" element={<PageTransition><IssueExplorer /></PageTransition>} />
           <Route path="/issues/:id" element={<PageTransition><IssueDetail /></PageTransition>} />
           <Route path="/profile" element={<RequireAuth><PageTransition><Profile /></PageTransition></RequireAuth>} />
+          <Route path="/saved" element={<RequireAuth><PageTransition><SavedIssues /></PageTransition></RequireAuth>} />
+          <Route path="/history" element={<RequireAuth><PageTransition><History /></PageTransition></RequireAuth>} />
+          <Route path="/trending" element={<PageTransition><Trending /></PageTransition>} />
+          <Route path="/settings" element={<RequireAuth><PageTransition><Settings /></PageTransition></RequireAuth>} />
         </Routes>
       </AnimatePresence>
     </div>

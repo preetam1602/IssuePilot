@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.models import ContributionEvent, Prediction, User, UserSkill
+from app.models import ContributionEvent, Prediction, SavedIssue, User, UserSkill
 from app.services.auth import get_current_user
 from app.session import get_db
 
@@ -57,6 +57,8 @@ def get_profile(user: User = Depends(get_current_user), db: Session = Depends(ge
         .where(Prediction.user_id == user.id, Prediction.success_prob.isnot(None))
     )
 
+    saved_count = db.scalar(select(func.count()).select_from(SavedIssue).where(SavedIssue.user_id == user.id))
+
     return {
         "username": user.username,
         "avatar_url": user.avatar_url,
@@ -66,7 +68,7 @@ def get_profile(user: User = Depends(get_current_user), db: Session = Depends(ge
         "website": user.website,
         "twitter": user.twitter_username,
         "skills": [skill.language for skill in skills],
-        "saved_count": 0,
+        "saved_count": saved_count or 0,
         "success_rate": round(avg_success * 100) if avg_success is not None else None,
         "stats": {
             "contributions": contributions or 0,

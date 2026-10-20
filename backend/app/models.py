@@ -147,3 +147,28 @@ class Prediction(Base):
     scored_at: Mapped[object] = mapped_column(DateTime(timezone=True), server_default=func.now())
     score_version: Mapped[str | None] = mapped_column(String)
     created_at: Mapped[object] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class SavedIssue(Base):
+    __tablename__ = "saved_issues"
+    __table_args__ = (UniqueConstraint("user_id", "issue_id", name="uq_saved_issues_user_issue"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    issue_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("issues.id", ondelete="CASCADE"))
+    # Snapshot of the thread size when saved, so the Claim Radar can tell how much it grew since.
+    comments_at_save: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    saved_at: Mapped[object] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class UserPreference(Base):
+    __tablename__ = "user_preferences"
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    boosted_languages: Mapped[list[str]] = mapped_column(ARRAY(String), default=list, server_default="{}")
+    muted_languages: Mapped[list[str]] = mapped_column(ARRAY(String), default=list, server_default="{}")
+    comfort_difficulty: Mapped[str] = mapped_column(String, default="any", server_default="any")
+    prefer_fresh: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    updated_at: Mapped[object] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

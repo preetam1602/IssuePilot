@@ -18,38 +18,31 @@ export default function Sidebar() {
   const navItems = [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { label: 'Issue Explorer', path: '/issues', icon: Search },
-    { label: 'Saved Issues', path: '/saved', icon: Bookmark, soon: true },
-    { label: 'History', path: '/history', icon: History, soon: true },
-    { label: 'Trending', path: '/trending', icon: TrendingUp, soon: true },
+    { label: 'Saved Issues', path: '/saved', icon: Bookmark },
+    { label: 'History', path: '/history', icon: History },
+    { label: 'Trending', path: '/trending', icon: TrendingUp },
   ]
 
   const userItems = [
     { label: 'Profile', path: '/profile', icon: User },
-    { label: 'Settings', path: '/settings', icon: Settings, soon: true },
+    { label: 'Settings', path: '/settings', icon: Settings },
   ]
 
-  const renderItem = (item) =>
-    item.soon ? (
-      <motion.div key={item.path} variants={itemVariants} className="sidebar-link disabled">
-        <item.icon size={18} />
-        <span>{item.label}</span>
-        <span className="soon-badge">Soon</span>
-      </motion.div>
-    ) : (
-      <motion.div key={item.path} variants={itemVariants}>
-        <Link to={item.path} className={`sidebar-link ${isActive(item.path) ? 'active' : ''}`}>
-          {isActive(item.path) && (
-            <motion.div
-              layoutId="sidebar-active-pill"
-              className="sidebar-active-pill"
-              transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-            />
-          )}
-          <item.icon size={18} style={{ position: 'relative', zIndex: 1 }} />
-          <span style={{ position: 'relative', zIndex: 1 }}>{item.label}</span>
-        </Link>
-      </motion.div>
-    )
+  const renderItem = (item) => (
+    <motion.div key={item.path} variants={itemVariants}>
+      <Link to={item.path} className={`sidebar-link ${isActive(item.path) ? 'active' : ''}`}>
+        {isActive(item.path) && (
+          <motion.div
+            layoutId="sidebar-active-pill"
+            className="sidebar-active-pill"
+            transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+          />
+        )}
+        <item.icon size={18} style={{ position: 'relative', zIndex: 1 }} />
+        <span style={{ position: 'relative', zIndex: 1 }}>{item.label}</span>
+      </Link>
+    </motion.div>
+  )
 
   return (
     <aside className="sidebar hide-mobile">
@@ -132,30 +125,12 @@ export default function Sidebar() {
         .sidebar-link.active {
           color: var(--primary);
         }
-        .sidebar-link.disabled {
-          color: var(--muted);
-          cursor: not-allowed;
-          opacity: 0.55;
-        }
         .sidebar-active-pill {
           position: absolute;
           inset: 0;
           background: var(--border-light);
           border-radius: 8px;
           z-index: 0;
-        }
-        .soon-badge {
-          margin-left: auto;
-          font-size: 9px;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          font-weight: 700;
-          padding: 2px 6px;
-          border-radius: 99px;
-          border: 1px solid var(--border);
-          color: var(--muted);
-          position: relative;
-          z-index: 1;
         }
         .sidebar-footer {
           margin-top: auto;

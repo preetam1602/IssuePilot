@@ -3,6 +3,7 @@ import { Zap, Star, GitFork } from 'lucide-react'
 import { motion } from 'framer-motion'
 import PredictionBadge from './PredictionBadge'
 import AnimatedNumber from './AnimatedNumber'
+import SaveButton from './SaveButton'
 import { difficultyLabel } from '../lib/format'
 
 const cardVariants = {
@@ -63,6 +64,7 @@ export default function IssueCard({ issue, scoreLabel = 'Match' }) {
       </div>
 
       <div className="card-footer">
+        <SaveButton issueId={issue_id} />
         <Link to={`/issues/${issue_id}`}>
           <motion.span
             className="button button-primary"

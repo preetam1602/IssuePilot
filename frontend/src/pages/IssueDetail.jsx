@@ -1,5 +1,6 @@
 import { useParams } from 'react-router-dom'
 import PredictionBadge from '../components/PredictionBadge'
+import SaveButton from '../components/SaveButton'
 import { useIssue } from '../hooks/useIssue'
 import { usePrediction } from '../hooks/usePrediction'
 import { timeAgo, scoreTier, difficultyLabel } from '../lib/format'
@@ -167,6 +168,8 @@ export default function IssueDetail() {
               </span>
             </motion.button>
             {prediction.isError && <p className="text-muted text-small">Prediction failed. Try again.</p>}
+
+            <SaveButton issueId={id} wide />
 
             {url ? (
               <a href={url} target="_blank" rel="noreferrer" className="button button-ghost" style={{ width: '100%', marginTop: 8 }}>

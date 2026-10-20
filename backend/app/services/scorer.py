@@ -5,7 +5,7 @@ from sqlalchemy import delete, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
-from app.models import Prediction, User, UserSkill
+from app.models import Prediction, User, UserPreference, UserSkill
 from app.services.retrieve import retrieve_candidates_batch
 
 # Users scored per embedding + Qdrant round trip.
@@ -16,10 +16,13 @@ USER_BATCH_SIZE = 64
 FALLBACK_PROFILE = "beginner friendly good first issue, documentation, small bug fix"
 
 
-def _profile_text(skills: list[UserSkill]) -> str:
-    if not skills:
-        return FALLBACK_PROFILE
-    return ", ".join(f"{s.language} ({s.domain or 'general'}, level {s.level})" for s in skills)
+def _profile_text(skills: list[UserSkill], boosted_languages: list[str] | None = None) -> str:
+    text = ", ".join(f"{s.language} ({s.domain or 'general'}, level {s.level})" for s in skills) or FALLBACK_PROFILE
+    # Languages boosted in Settings steer retrieval toward them, so the
+    # candidate pool has enough of them for the read-time re-rank to surface.
+    if boosted_languages:
+        text += f", focus on {', '.join(boosted_languages)}"
+    return text
 
 
 def run_nightly_scoring(db: Session, user_id: str | None = None) -> int:
@@ -40,9 +43,15 @@ def run_nightly_scoring(db: Session, user_id: str | None = None) -> int:
         skills_by_user = defaultdict(list)
         for skill in db.execute(select(UserSkill).where(UserSkill.user_id.in_(batch))).scalars():
             skills_by_user[str(skill.user_id)].append(skill)
+        boosted_by_user = {
+            str(pref.user_id): pref.boosted_languages
+            for pref in db.execute(select(UserPreference).where(UserPreference.user_id.in_(batch))).scalars()
+        }
 
         candidates_per_user = retrieve_candidates_batch(
-            db, [_profile_text(skills_by_user[str(uid)]) for uid in batch], top_k=50
+            db,
+            [_profile_text(skills_by_user[str(uid)], boosted_by_user.get(str(uid))) for uid in batch],
+            top_k=50,
         )
 
         for uid, candidates in zip(batch, candidates_per_user):
