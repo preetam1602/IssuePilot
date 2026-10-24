@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Github, LayoutDashboard, Search, User, Terminal, LogOut } from 'lucide-react'
+import { Github, LayoutDashboard, Search, User, Terminal, LogOut, Compass, LineChart, Users } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { isSignedIn, signInWithGitHub, signOut } from '../lib/api'
 import { useProfile } from '../hooks/useProfile'
@@ -9,14 +9,23 @@ export default function Navbar() {
   const isActive = (path) => location.pathname === path
   const { data: profile } = useProfile({ enabled: isSignedIn() })
 
-  const links = [
-    { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/issues', label: 'Explorer', icon: Search },
-  ]
+  const isLanding = location.pathname === '/landing'
+
+  const links = isLanding
+    ? [
+        { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { path: '/issues', label: 'Explore', icon: Compass },
+        { path: '/history', label: 'Insights', icon: LineChart },
+        { path: '/trending', label: 'Community', icon: Users },
+      ]
+    : [
+        { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { path: '/issues', label: 'Explorer', icon: Search },
+      ]
 
   return (
     <motion.nav
-      className={`navbar ${location.pathname === '/landing' ? 'navbar-landing' : ''}`}
+      className={`navbar ${isLanding ? 'navbar-landing' : ''}`}
       initial={{ y: -72, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
@@ -57,6 +66,12 @@ export default function Navbar() {
         </div>
 
         <div className="navbar-right">
+          {isLanding && (
+            <Link to="/issues" className="nav-search" aria-label="Search issues">
+              <Search size={18} />
+            </Link>
+          )}
+
           {!profile && (
             <motion.button
               className="button button-secondary hide-mobile"
@@ -109,10 +124,23 @@ export default function Navbar() {
           backdrop-filter: var(--glass);
           border-bottom: 1px solid var(--border);
         }
-        .navbar-landing {
-          background: rgba(5, 11, 8, 0.85);
-          border-bottom-color: #24352C;
+        .navbar .button-secondary {
+          background: rgba(255, 255, 255, 0.03);
+          border-color: rgba(96, 130, 255, 0.32);
         }
+        .navbar .button-secondary:hover { border-color: var(--info); }
+        .nav-search {
+          width: 36px;
+          height: 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 10px;
+          color: var(--text-secondary);
+          border: 1px solid rgba(96, 130, 255, 0.2);
+          transition: color 0.2s ease, border-color 0.2s ease;
+        }
+        .nav-search:hover { color: #fff; border-color: #3B82F6; }
         .navbar-container {
           max-width: var(--container-max);
           margin: 0 auto;
@@ -139,8 +167,9 @@ export default function Navbar() {
         .logo-icon {
           width: 32px;
           height: 32px;
-          background: var(--primary);
-          color: #062014;
+          background: var(--gradient-primary);
+          color: #fff;
+          box-shadow: 0 0 16px -4px rgba(124, 58, 237, 0.8);
           border-radius: 8px;
           display: flex;
           align-items: center;
@@ -200,6 +229,11 @@ export default function Navbar() {
         @media (max-width: 768px) {
           .navbar-container { padding: 0 16px; }
           .navbar-links { display: none; }
+          .navbar-left, .navbar-right { gap: 12px; }
+        }
+        @media (max-width: 1024px) {
+          .navbar-landing .navbar-left { gap: 16px; }
+          .navbar-landing .nav-link span { display: none; }
         }
       `}</style>
     </motion.nav>

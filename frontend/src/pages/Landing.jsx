@@ -1,42 +1,28 @@
 import { Link } from 'react-router-dom'
-import { Github, ArrowRight, Star, Plane, Sparkles, Search, Zap, BarChart3 } from 'lucide-react'
+import { Github, ArrowRight, Sparkles, Target, Gauge, BarChart3, Users, Sprout, Flame } from 'lucide-react'
 import { motion, MotionConfig } from 'framer-motion'
 import { signInWithGitHub } from '../lib/api'
 
-// Static sample data for the product preview; the real dashboard reads from /recommend.
-const FLIGHT = {
-  id: 'IP-0842',
-  from: { code: 'YOU', sub: 'Python · TypeScript' },
-  to: { code: 'TYPER', sub: 'tiangolo/typer' },
-  title: 'Show default values for Enum options in --help',
-  fields: [
-    { label: 'Difficulty', value: 'Beginner' },
-    { label: 'Effort', value: '~3 hrs' },
-    { label: 'Skill match', value: '92%' },
-  ],
-  success: 78,
-}
-const DEPARTURES = [
-  { repo: 'vitejs/vite', issue: 'Clarify config promise error', match: 88, status: 'Boarding' },
-  { repo: 'rust-lang/rustlings', issue: 'Hint for iterators3', match: 81, status: 'On time' },
-  { repo: 'astral-sh/ruff', issue: 'Document E501 settings', match: 76, status: 'On time' },
+// Static sample data for the hero illustration; the real dashboard reads from /recommend.
+const SUCCESS_SPARK = 'M0,30 C12,28 18,22 30,22 S48,14 60,15 S78,8 90,9 S108,3 120,2'
+const TRENDING = [
+  { repo: 'vitejs/vite', value: 86 },
+  { repo: 'astral-sh/ruff', value: 64 },
+  { repo: 'rust-lang/rustlings', value: 48 },
 ]
-const WEEKLY_MATCHES = [
-  { day: 'Mon', value: 6 },
-  { day: 'Tue', value: 9 },
-  { day: 'Wed', value: 7 },
-  { day: 'Thu', value: 12 },
-  { day: 'Fri', value: 10 },
-  { day: 'Sat', value: 14 },
-  { day: 'Sun', value: 11 },
+const STATS = [
+  { value: '10K+', label: 'Developers' },
+  { value: '50K+', label: 'Issues Analyzed' },
+  { value: '500+', label: 'Repositories' },
+  { value: '85%', label: 'Success Rate' },
 ]
-// Bar widths for the decorative barcode on the pass stub.
-const BARCODE = [2, 1, 3, 1, 1, 2, 1, 3, 2, 1, 1, 2, 3, 1, 2, 1, 1, 3, 1, 2, 2, 1, 3, 1]
 const FEATURES = [
-  { icon: Search, title: 'Skill-matched discovery', text: 'Issues ranked against the languages in your GitHub repos.' },
-  { icon: Zap, title: 'Success predictions', text: 'An AI read on how likely you are to land a fix.' },
-  { icon: BarChart3, title: 'Progress you can see', text: 'Track the issues you check and the PRs you merge.' },
+  { icon: Target, title: 'AI-Powered Matching', text: 'Issues ranked against the languages and skills in your GitHub repos.' },
+  { icon: Gauge, title: 'Success Prediction', text: 'An AI read on how likely your contribution is to land before you start.' },
+  { icon: BarChart3, title: 'Track Progress', text: 'Keep tabs on the issues you check, save, and the PRs you merge.' },
+  { icon: Users, title: 'Explore Communities', text: 'Discover trending repositories that welcome new contributors.' },
 ]
+const CUBE_FACES = ['front', 'back', 'right', 'left', 'top', 'bottom']
 
 const ease = [0.22, 1, 0.36, 1]
 const fadeUp = (delay = 0) => ({
@@ -45,123 +31,96 @@ const fadeUp = (delay = 0) => ({
   transition: { duration: 0.6, delay, ease },
 })
 
-function WeeklySpark() {
-  const max = Math.max(...WEEKLY_MATCHES.map(d => d.value))
+function Panel({ className = '', delay = 0, children }) {
   return (
-    <div className="lp-spark" role="img" aria-label="Issues matched per day this week">
-      {WEEKLY_MATCHES.map((d, i) => (
-        <motion.span
-          key={d.day}
-          className="lp-spark-bar"
-          title={`${d.day}: ${d.value} matches`}
-          initial={{ height: 0 }}
-          animate={{ height: `${(d.value / max) * 100}%` }}
-          transition={{ duration: 0.6, delay: 0.8 + i * 0.04, ease }}
-        />
-      ))}
-    </div>
+    <motion.div
+      className={`lp-panel ${className}`}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay, ease }}
+    >
+      {children}
+    </motion.div>
   )
 }
 
-function BoardingPass() {
+function Ring({ value }) {
+  const r = 22
+  const c = 2 * Math.PI * r
   return (
-    <div className="lp-pass">
-      <div className="lp-pass-main">
-        <div className="lp-pass-head">
-          <span className="lp-pass-tag"><Sparkles size={12} /> Recommended for you</span>
-          <span className="lp-mono lp-pass-id">{FLIGHT.id}</span>
-        </div>
-
-        <div className="lp-route">
-          <div className="lp-route-end">
-            <span className="lp-mono lp-route-code">{FLIGHT.from.code}</span>
-            <span className="lp-route-sub">{FLIGHT.from.sub}</span>
-          </div>
-          <div className="lp-route-line" aria-hidden="true">
-            <motion.span
-              className="lp-route-trail"
-              initial={{ width: '0%' }}
-              animate={{ width: '64%' }}
-              transition={{ duration: 1.4, delay: 0.5, ease }}
-            />
-            <motion.span
-              className="lp-route-plane"
-              initial={{ left: '0%' }}
-              animate={{ left: '64%' }}
-              transition={{ duration: 1.4, delay: 0.5, ease }}
-            >
-              <Plane size={14} />
-            </motion.span>
-          </div>
-          <div className="lp-route-end lp-route-end-to">
-            <span className="lp-mono lp-route-code">{FLIGHT.to.code}</span>
-            <span className="lp-route-sub">{FLIGHT.to.sub}</span>
-          </div>
-        </div>
-
-        <p className="lp-pass-title">{FLIGHT.title}</p>
-
-        <dl className="lp-pass-fields">
-          {FLIGHT.fields.map(f => (
-            <div key={f.label}>
-              <dt>{f.label}</dt>
-              <dd>{f.value}</dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-
-      <div className="lp-perf" aria-hidden="true" />
-
-      <div className="lp-pass-stub">
-        <span className="lp-stub-label">Success</span>
-        <span className="lp-stub-value">{FLIGHT.success}%</span>
-        <span className="lp-stub-note">Likely to merge</span>
-        <div className="lp-barcode" aria-hidden="true">
-          {BARCODE.map((w, i) => <span key={i} style={{ width: w }} />)}
-        </div>
-      </div>
-    </div>
+    <svg className="lp-ring" viewBox="0 0 56 56" aria-hidden="true">
+      <defs>
+        <linearGradient id="lp-ring-grad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#A855F7" />
+          <stop offset="100%" stopColor="#38BDF8" />
+        </linearGradient>
+      </defs>
+      <circle cx="28" cy="28" r={r} className="lp-ring-track" />
+      <circle
+        cx="28" cy="28" r={r}
+        className="lp-ring-value"
+        strokeDasharray={c}
+        strokeDashoffset={c * (1 - value / 100)}
+      />
+    </svg>
   )
 }
 
-function DepartureBoard() {
+function AICube() {
   return (
-    <div className="lp-board">
-      <div className="lp-board-head">
-        <span className="lp-board-title">Next departures</span>
-        <div className="lp-board-week">
-          <span>This week</span>
-          <WeeklySpark />
-        </div>
-      </div>
-      <ul className="lp-board-rows">
-        {DEPARTURES.map((d, i) => (
-          <motion.li
-            key={d.repo}
-            className="lp-board-row"
-            initial={{ opacity: 0, x: 8 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4, delay: 0.7 + i * 0.08, ease }}
-          >
-            <div className="lp-board-issue">
-              <span className="lp-board-repo">{d.repo}</span>
-              <span className="lp-board-name">{d.issue}</span>
-            </div>
-            <span className="lp-mono lp-board-match">{d.match}%</span>
-            <span className={`lp-board-status ${d.status === 'Boarding' ? 'is-boarding' : ''}`}>{d.status}</span>
-          </motion.li>
+    <div className="lp-cube-scene" aria-hidden="true">
+      <div className="lp-cube-halo" />
+      <div className="lp-cube">
+        {CUBE_FACES.map(face => (
+          <span key={face} className={`lp-cube-face is-${face}`}>
+            {(face === 'front' || face === 'back') && <b>AI</b>}
+          </span>
         ))}
-      </ul>
+        <span className="lp-cube-core" />
+      </div>
+      <div className="lp-cube-base" />
     </div>
   )
 }
 
-function ProductPreview() {
+function HeroVisual() {
   return (
-    <div className="lp-preview" aria-label="IssuePilot dashboard preview">
-      <BoardingPass />
-      <DepartureBoard />
+    <div className="lp-visual" role="img" aria-label="Illustration of IssuePilot insights: skill match, success chance, good first issue and trending repositories">
+      <AICube />
+
+      <Panel className="is-skill" delay={0.35}>
+        <span className="lp-panel-label">Skill Match</span>
+        <div className="lp-panel-row">
+          <Ring value={92} />
+          <strong className="lp-panel-value">92%</strong>
+        </div>
+      </Panel>
+
+      <Panel className="is-success" delay={0.45}>
+        <span className="lp-panel-label">Success Chance</span>
+        <strong className="lp-panel-value">78%</strong>
+        <svg className="lp-spark" viewBox="0 0 120 32" preserveAspectRatio="none" aria-hidden="true">
+          <path d={SUCCESS_SPARK} vectorEffect="non-scaling-stroke" />
+        </svg>
+      </Panel>
+
+      <Panel className="is-gfi" delay={0.55}>
+        <span className="lp-chip"><Sprout size={12} /> Good First Issue</span>
+        <span className="lp-gfi-repo">vitejs/vite</span>
+        <span className="lp-gfi-title">Clarify config promise error</span>
+      </Panel>
+
+      <Panel className="is-trending" delay={0.65}>
+        <span className="lp-panel-label"><Flame size={12} /> Trending Repos</span>
+        <ul className="lp-bars">
+          {TRENDING.map(t => (
+            <li key={t.repo}>
+              <span>{t.repo}</span>
+              <i style={{ '--w': `${t.value}%` }} />
+            </li>
+          ))}
+        </ul>
+      </Panel>
     </div>
   )
 }
@@ -170,85 +129,81 @@ export default function Landing() {
   return (
     <MotionConfig reducedMotion="user">
       <main className="lp">
-        <section className="lp-shell">
-          <div className="lp-glow" aria-hidden="true" />
+        <div className="lp-glow" aria-hidden="true" />
 
-          <div className="lp-hero">
-            <div className="lp-copy">
-              <motion.span className="lp-eyebrow" {...fadeUp(0)}>
-                <Sparkles size={13} /> AI-matched open source issues
-              </motion.span>
-              <motion.h1 {...fadeUp(0.05)}>
-                Find the open source issue <span className="lp-accent">you can actually ship.</span>
-              </motion.h1>
-              <motion.p className="lp-lede" {...fadeUp(0.1)}>
-                IssuePilot reads your GitHub skills, recommends issues that fit, and predicts how likely
-                your contribution is to land, before you spend a weekend on it.
-              </motion.p>
-              <motion.div className="lp-actions" {...fadeUp(0.15)}>
-                <button type="button" className="lp-btn lp-btn-primary" onClick={signInWithGitHub}>
-                  <Github size={18} />
-                  Continue with GitHub
-                </button>
-                <Link to="/issues" className="lp-btn lp-btn-secondary">
-                  Explore issues
-                  <ArrowRight size={16} />
-                </Link>
-              </motion.div>
-              <motion.p className="lp-fineprint" {...fadeUp(0.2)}>
-                <Star size={13} /> Free for contributors. Read-only access to your public profile.
-              </motion.p>
-            </div>
-
-            <motion.div
-              className="lp-visual"
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.15, ease }}
-            >
-              <ProductPreview />
+        <section className="lp-hero">
+          <div className="lp-copy">
+            <motion.span className="lp-eyebrow" {...fadeUp(0)}>
+              <Sparkles size={13} /> AI-matched open source issues
+            </motion.span>
+            <motion.h1 {...fadeUp(0.05)}>
+              Open Source Opportunities, Personalized <span className="lp-accent">for You.</span>
+            </motion.h1>
+            <motion.p className="lp-lede" {...fadeUp(0.1)}>
+              IssuePilot reads your GitHub skills, recommends issues that fit, and predicts how likely
+              your contribution is to land, before you spend a weekend on it.
+            </motion.p>
+            <motion.div className="lp-actions" {...fadeUp(0.15)}>
+              <button type="button" className="lp-btn lp-btn-primary" onClick={signInWithGitHub}>
+                <Github size={18} />
+                Continue with GitHub
+              </button>
+              <Link to="/issues" className="lp-btn lp-btn-secondary">
+                Explore Issues
+                <ArrowRight size={16} />
+              </Link>
             </motion.div>
           </div>
 
-          <div className="lp-features">
-            {FEATURES.map(({ icon: Icon, title, text }) => (
-              <div key={title} className="lp-feature">
-                <span className="lp-feature-icon"><Icon size={16} /></span>
-                <div>
-                  <h3>{title}</h3>
-                  <p>{text}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+          <motion.div
+            className="lp-visual-wrap"
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.15, ease }}
+          >
+            <HeroVisual />
+          </motion.div>
+        </section>
+
+        <motion.section className="lp-stats" aria-label="IssuePilot in numbers" {...fadeUp(0.25)}>
+          {STATS.map(s => (
+            <div key={s.label} className="lp-stat">
+              <strong>{s.value}</strong>
+              <span>{s.label}</span>
+            </div>
+          ))}
+        </motion.section>
+
+        <section className="lp-features">
+          {FEATURES.map(({ icon: Icon, title, text }) => (
+            <div key={title} className="lp-feature">
+              <span className="lp-feature-icon"><Icon size={18} /></span>
+              <h3>{title}</h3>
+              <p>{text}</p>
+            </div>
+          ))}
         </section>
 
         <style>{`
           .lp {
-            --lp-bg: #050B08;
-            --lp-shell: #0B1210;
-            --lp-card: #101A16;
-            --lp-elevated: #16231D;
-            --lp-mint: #5EE0B5;
-            --lp-emerald: #10B981;
-            --lp-text: #F3F7F4;
-            --lp-text-2: #A0ADA5;
-            --lp-border: #24352C;
+            --lp-bg: #05060F;
+            --lp-card: rgba(17, 20, 40, 0.55);
+            --lp-purple: #A855F7;
+            --lp-violet: #7C3AED;
+            --lp-blue: #3B82F6;
+            --lp-cyan: #22D3EE;
+            --lp-text: #F4F5FB;
+            --lp-text-2: #9CA3C4;
+            --lp-border: rgba(96, 130, 255, 0.18);
+            --lp-border-strong: rgba(96, 130, 255, 0.32);
 
-            flex: 1;
-            width: 100%;
-            background: var(--lp-bg);
-            padding: 24px 32px 48px;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            color: var(--lp-text);
-          }
-          .lp-shell {
             position: relative;
-            max-width: var(--container-max);
-            margin: 0 auto;
-            background: var(--lp-shell);
-            border: 1px solid var(--lp-border);
-            border-radius: 28px;
+            width: 100%;
+            min-height: calc(100dvh - var(--nav-height));
+            background: var(--lp-bg);
+            color: var(--lp-text);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            padding: 0 32px 96px;
             overflow: hidden;
             isolation: isolate;
           }
@@ -258,15 +213,19 @@ export default function Landing() {
             z-index: -1;
             pointer-events: none;
             background:
-              radial-gradient(600px circle at 12% 0%, rgba(16, 185, 129, 0.14), transparent 60%),
-              radial-gradient(520px circle at 92% 70%, rgba(45, 212, 191, 0.07), transparent 60%);
+              radial-gradient(700px circle at 8% 0%, rgba(124, 58, 237, 0.18), transparent 60%),
+              radial-gradient(640px circle at 85% 18%, rgba(59, 130, 246, 0.16), transparent 60%),
+              radial-gradient(520px circle at 60% 90%, rgba(34, 211, 238, 0.06), transparent 60%);
           }
+          .lp-hero, .lp-stats, .lp-features { max-width: var(--container-max); margin: 0 auto; }
+
+          /* Hero */
           .lp-hero {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-            gap: 56px;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 48px;
             align-items: center;
-            padding: 72px 64px 56px;
+            padding: 72px 0 56px;
           }
           .lp-copy { display: flex; flex-direction: column; align-items: flex-start; }
           .lp-eyebrow {
@@ -276,22 +235,27 @@ export default function Landing() {
             padding: 6px 12px;
             border: 1px solid var(--lp-border);
             border-radius: 99px;
-            background: rgba(16, 185, 129, 0.06);
-            color: var(--lp-mint);
+            background: rgba(124, 58, 237, 0.08);
+            color: #C4B5FD;
             font-size: 12.5px;
             font-weight: 500;
-            letter-spacing: 0.01em;
           }
           .lp h1 {
-            margin-top: 24px;
-            font-size: clamp(36px, 4.6vw, 58px);
+            margin-top: 22px;
+            font-size: clamp(36px, 4.6vw, 60px);
             font-weight: 700;
-            line-height: 1.05;
+            line-height: 1.06;
             letter-spacing: -0.035em;
             color: var(--lp-text);
-            max-width: 13ch;
+            max-width: 14ch;
           }
-          .lp-accent { color: var(--lp-mint); }
+          .lp-accent {
+            background: linear-gradient(90deg, #C084FC 0%, #A855F7 45%, #6366F1 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            white-space: nowrap;
+          }
           .lp-lede {
             margin-top: 20px;
             max-width: 46ch;
@@ -305,67 +269,137 @@ export default function Landing() {
             align-items: center;
             justify-content: center;
             gap: 10px;
-            height: 46px;
-            padding: 0 20px;
+            height: 48px;
+            padding: 0 22px;
             border-radius: 12px;
             font: inherit;
             font-size: 14.5px;
             font-weight: 600;
             text-decoration: none;
             cursor: pointer;
-            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
           }
           .lp-btn-primary {
-            background: var(--lp-mint);
-            color: #04130D;
-            border: 1px solid var(--lp-mint);
+            color: #fff;
+            border: 1px solid rgba(168, 85, 247, 0.6);
+            background: linear-gradient(135deg, var(--lp-violet), var(--lp-blue));
+            box-shadow: 0 0 24px -6px rgba(124, 58, 237, 0.7);
           }
-          .lp-btn-primary:hover { background: #7AE8C4; transform: translateY(-1px); }
+          .lp-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 0 32px -4px rgba(124, 58, 237, 0.85); }
           .lp-btn-secondary {
-            background: transparent;
             color: var(--lp-text);
-            border: 1px solid var(--lp-border);
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--lp-border-strong);
           }
-          .lp-btn-secondary:hover { border-color: var(--lp-emerald); background: rgba(16, 185, 129, 0.06); }
+          .lp-btn-secondary:hover { border-color: var(--lp-blue); background: rgba(59, 130, 246, 0.08); }
           .lp-btn-secondary svg { transition: transform 0.2s ease; }
           .lp-btn-secondary:hover svg { transform: translateX(2px); }
-          .lp-btn:focus-visible { outline: 2px solid var(--lp-mint); outline-offset: 3px; }
-          .lp-fineprint {
+          .lp-btn:focus-visible { outline: 2px solid var(--lp-purple); outline-offset: 3px; }
+
+          /* Hero visual: CSS 3D cube with glass panels around it */
+          .lp-visual-wrap { min-width: 0; }
+          .lp-visual {
+            position: relative;
+            height: 460px;
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-top: 20px;
-            font-size: 13px;
-            color: var(--lp-text-2);
+            justify-content: center;
           }
-          .lp-fineprint svg { color: var(--lp-emerald); }
+          .lp-cube-scene {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            perspective: 900px;
+          }
+          .lp-cube-halo {
+            position: absolute;
+            inset: -90px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(124, 58, 237, 0.35), rgba(59, 130, 246, 0.12) 45%, transparent 70%);
+            filter: blur(10px);
+          }
+          .lp-cube {
+            --s: 150px;
+            position: relative;
+            width: var(--s);
+            height: var(--s);
+            transform-style: preserve-3d;
+            transform: rotateX(-22deg) rotateY(38deg);
+            animation: lp-spin 24s linear infinite;
+          }
+          .lp-cube-face {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(147, 197, 253, 0.55);
+            border-radius: 14px;
+            transform-style: preserve-3d;
+            background:
+              linear-gradient(135deg, rgba(168, 85, 247, 0.35), rgba(59, 130, 246, 0.22) 60%, rgba(34, 211, 238, 0.18));
+            box-shadow: inset 0 0 30px rgba(168, 85, 247, 0.35), 0 0 22px rgba(99, 102, 241, 0.35);
+          }
+          .lp-cube-face b {
+            font-size: 40px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: #fff;
+            text-shadow: 0 0 18px rgba(168, 85, 247, 0.9);
+            backface-visibility: hidden;
+          }
+          .lp-cube-face.is-front  { transform: translateZ(calc(var(--s) / 2)); }
+          .lp-cube-face.is-back   { transform: rotateY(180deg) translateZ(calc(var(--s) / 2)); }
+          .lp-cube-face.is-right  { transform: rotateY(90deg) translateZ(calc(var(--s) / 2)); }
+          .lp-cube-face.is-left   { transform: rotateY(-90deg) translateZ(calc(var(--s) / 2)); }
+          .lp-cube-face.is-top    { transform: rotateX(90deg) translateZ(calc(var(--s) / 2)); }
+          .lp-cube-face.is-bottom { transform: rotateX(-90deg) translateZ(calc(var(--s) / 2)); }
+          .lp-cube-core {
+            position: absolute;
+            inset: 40px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.9), rgba(168, 85, 247, 0.6) 40%, transparent 70%);
+            filter: blur(6px);
+          }
+          .lp-cube-base {
+            position: absolute;
+            left: 50%;
+            bottom: -80px;
+            width: 220px;
+            height: 40px;
+            transform: translateX(-50%);
+            border-radius: 50%;
+            border: 1px solid rgba(96, 165, 250, 0.35);
+            background: radial-gradient(ellipse, rgba(59, 130, 246, 0.28), transparent 70%);
+          }
+          @keyframes lp-spin {
+            from { transform: rotateX(-22deg) rotateY(38deg); }
+            to   { transform: rotateX(-22deg) rotateY(398deg); }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .lp-cube { animation: none; }
+          }
 
-          .lp-visual { min-width: 0; }
-          .lp-mono { font-family: ui-monospace, 'JetBrains Mono', SFMono-Regular, Menlo, Consolas, monospace; }
-          .lp-preview {
+          .lp-panel {
+            position: absolute;
+            z-index: 1;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            padding: 14px;
+            gap: 8px;
+            padding: 14px 16px;
+            min-width: 168px;
             background: var(--lp-card);
-            border: 1px solid var(--lp-border);
-            border-radius: 22px;
-            box-shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.6);
-          }
-
-          /* Boarding pass: the top recommendation, routed from your stack to the issue */
-          .lp-pass {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) 0 132px;
-            background: var(--lp-elevated);
-            border: 1px solid var(--lp-border);
+            border: 1px solid var(--lp-border-strong);
             border-radius: 16px;
-            /* Clips the perforation circles into half-moon notches. */
-            overflow: hidden;
+            backdrop-filter: blur(14px) saturate(140%);
+            -webkit-backdrop-filter: blur(14px) saturate(140%);
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.02) inset, 0 18px 40px -20px rgba(0, 0, 0, 0.8), 0 0 24px -12px rgba(59, 130, 246, 0.6);
           }
-          .lp-pass-main { padding: 18px 20px; min-width: 0; }
-          .lp-pass-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-          .lp-pass-tag {
+          .lp-panel.is-skill    { top: 6%;  left: 0; }
+          .lp-panel.is-success  { top: 10%; right: 0; }
+          .lp-panel.is-gfi      { bottom: 6%; left: 2%; max-width: 220px; }
+          .lp-panel.is-trending { bottom: 4%; right: 0; min-width: 200px; }
+          .lp-panel-label {
             display: inline-flex;
             align-items: center;
             gap: 6px;
@@ -373,218 +407,121 @@ export default function Landing() {
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.08em;
-            color: var(--lp-mint);
+            color: var(--lp-text-2);
           }
-          .lp-pass-id { font-size: 11px; color: var(--lp-text-2); letter-spacing: 0.06em; }
-          .lp-route {
-            display: grid;
-            grid-template-columns: auto minmax(40px, 1fr) auto;
+          .lp-panel-row { display: flex; align-items: center; gap: 12px; }
+          .lp-panel-value { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; color: var(--lp-text); }
+          .lp-ring { width: 44px; height: 44px; transform: rotate(-90deg); }
+          .lp-ring-track { fill: none; stroke: rgba(96, 130, 255, 0.15); stroke-width: 5; }
+          .lp-ring-value { fill: none; stroke: url(#lp-ring-grad); stroke-width: 5; stroke-linecap: round; }
+          .lp-spark { width: 100%; height: 28px; overflow: visible; }
+          .lp-spark path { fill: none; stroke: var(--lp-cyan); stroke-width: 2; stroke-linecap: round; filter: drop-shadow(0 0 4px rgba(34, 211, 238, 0.6)); }
+          .lp-chip {
+            align-self: flex-start;
+            display: inline-flex;
             align-items: center;
-            gap: 14px;
-            margin-top: 18px;
-          }
-          .lp-route-end { display: flex; flex-direction: column; min-width: 0; }
-          .lp-route-end-to { align-items: flex-end; text-align: right; }
-          .lp-route-code { font-size: 26px; font-weight: 700; letter-spacing: 0.02em; color: var(--lp-text); line-height: 1.1; }
-          .lp-route-sub { font-size: 11.5px; color: var(--lp-text-2); white-space: nowrap; }
-          .lp-route-line {
-            position: relative;
-            height: 2px;
-            background-image: linear-gradient(to right, var(--lp-border) 50%, transparent 50%);
-            background-size: 8px 2px;
-          }
-          .lp-route-line::after {
-            content: '';
-            position: absolute;
-            right: -3px;
-            top: -3px;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            border: 2px solid var(--lp-emerald);
-            background: var(--lp-elevated);
-          }
-          .lp-route-trail {
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 2px;
-            background: var(--lp-emerald);
-            border-radius: 2px;
-          }
-          .lp-route-plane {
-            position: absolute;
-            top: 50%;
-            transform: translate(-50%, -50%) rotate(45deg);
-            display: flex;
-            color: var(--lp-mint);
-          }
-          .lp-pass-title {
-            margin-top: 16px;
-            font-size: 15px;
-            font-weight: 500;
-            line-height: 1.45;
-            color: var(--lp-text);
-          }
-          .lp-pass-fields {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 12px;
-            margin-top: 14px;
-            padding-top: 14px;
-            border-top: 1px solid var(--lp-border);
-          }
-          .lp-pass-fields dt {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--lp-text-2);
-          }
-          .lp-pass-fields dd { margin-top: 2px; font-size: 13.5px; font-weight: 600; color: var(--lp-text); }
-
-          /* Perforated tear line with notches cut into the pass edge */
-          .lp-perf { position: relative; border-left: 2px dashed var(--lp-border); }
-          .lp-perf::before, .lp-perf::after {
-            content: '';
-            position: absolute;
-            left: -11px;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: var(--lp-card);
-            border: 1px solid var(--lp-border);
-          }
-          .lp-perf::before { top: -11px; }
-          .lp-perf::after { bottom: -11px; }
-
-          .lp-pass-stub {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 18px 16px;
-            min-width: 0;
-          }
-          .lp-stub-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--lp-text-2);
-          }
-          .lp-stub-value { font-size: 34px; font-weight: 700; letter-spacing: -0.03em; color: var(--lp-mint); line-height: 1.1; }
-          .lp-stub-note { font-size: 11.5px; color: var(--lp-text-2); }
-          .lp-barcode { display: flex; gap: 2px; height: 30px; margin-top: 14px; opacity: 0.55; }
-          .lp-barcode span { display: block; height: 100%; background: var(--lp-text-2); border-radius: 1px; }
-
-          /* Departure board: the rest of the recommendations */
-          .lp-board {
-            padding: 14px 16px 6px;
-            border: 1px solid var(--lp-border);
-            border-radius: 16px;
-          }
-          .lp-board-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-bottom: 10px; }
-          .lp-board-title {
+            gap: 6px;
+            padding: 3px 9px;
+            border-radius: 99px;
             font-size: 11px;
             font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--lp-text-2);
+            color: #86EFAC;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
           }
-          .lp-board-week { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--lp-text-2); }
-          .lp-spark { display: flex; align-items: flex-end; gap: 3px; height: 20px; }
-          .lp-spark-bar { display: block; width: 5px; border-radius: 2px 2px 0 0; background: var(--lp-emerald); }
-          .lp-spark-bar:last-child, .lp-spark-bar:hover { background: var(--lp-mint); }
-          .lp-board-rows { list-style: none; }
-          .lp-board-row {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) auto 76px;
-            align-items: center;
-            gap: 14px;
-            padding: 11px 0;
-            border-top: 1px solid var(--lp-border);
-          }
-          .lp-board-issue { display: flex; flex-direction: column; min-width: 0; }
-          .lp-board-repo { font-size: 11.5px; color: var(--lp-text-2); }
-          .lp-board-name {
-            font-size: 13.5px;
-            font-weight: 500;
-            color: var(--lp-text);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-          }
-          .lp-board-match { font-size: 14px; font-weight: 600; color: var(--lp-text); }
-          .lp-board-status {
-            justify-self: end;
-            font-size: 10.5px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            padding: 3px 8px;
-            border-radius: 6px;
-            color: var(--lp-text-2);
-            border: 1px solid var(--lp-border);
-          }
-          .lp-board-status.is-boarding {
-            color: var(--lp-mint);
-            border-color: rgba(94, 224, 181, 0.35);
-            background: rgba(94, 224, 181, 0.08);
+          .lp-gfi-repo { font-size: 11.5px; color: var(--lp-text-2); }
+          .lp-gfi-title { font-size: 13.5px; font-weight: 500; color: var(--lp-text); line-height: 1.35; }
+          .lp-bars { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+          .lp-bars li { display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; color: var(--lp-text-2); }
+          .lp-bars i {
+            display: block;
+            height: 4px;
+            width: var(--w);
+            border-radius: 2px;
+            background: linear-gradient(90deg, var(--lp-violet), var(--lp-cyan));
           }
 
+          /* Stats bar */
+          .lp-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            border: 1px solid var(--lp-border);
+            border-radius: 20px;
+            background: linear-gradient(180deg, rgba(17, 20, 40, 0.6), rgba(10, 12, 26, 0.6));
+          }
+          .lp-stat { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 28px 16px; text-align: center; }
+          .lp-stat + .lp-stat { border-left: 1px solid var(--lp-border); }
+          .lp-stat strong {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(90deg, #E9D5FF, #93C5FD);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+          }
+          .lp-stat span { font-size: 13.5px; color: var(--lp-text-2); }
+
+          /* Features */
           .lp-features {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            border-top: 1px solid var(--lp-border);
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-top: 48px;
           }
-          .lp-feature { display: flex; gap: 14px; padding: 28px 32px; }
-          .lp-feature + .lp-feature { border-left: 1px solid var(--lp-border); }
+          .lp-feature {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 26px 24px;
+            border: 1px solid var(--lp-border);
+            border-radius: 20px;
+            background: var(--lp-card);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+          }
+          .lp-feature:hover { border-color: var(--lp-border-strong); box-shadow: 0 0 28px -12px rgba(124, 58, 237, 0.6); }
           .lp-feature-icon {
-            flex-shrink: 0;
-            width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 9px;
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--lp-mint);
+            margin-bottom: 6px;
+            border-radius: 12px;
+            color: #C4B5FD;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.22), rgba(59, 130, 246, 0.16));
+            border: 1px solid rgba(168, 85, 247, 0.3);
           }
-          .lp-feature h3 { font-size: 14.5px; font-weight: 600; color: var(--lp-text); }
-          .lp-feature p { font-size: 13.5px; line-height: 1.55; color: var(--lp-text-2); margin-top: 4px; }
+          .lp-feature h3 { font-size: 16px; font-weight: 600; color: var(--lp-text); }
+          .lp-feature p { font-size: 14px; line-height: 1.6; color: var(--lp-text-2); }
 
+          /* Tablet */
           @media (max-width: 1024px) {
-            .lp-hero { grid-template-columns: 1fr; gap: 48px; padding: 56px 40px 40px; }
-            .lp h1 { max-width: 16ch; }
-            .lp-feature { padding: 24px; }
+            .lp-hero { grid-template-columns: 1fr; gap: 40px; padding: 56px 0 48px; }
+            .lp h1 { max-width: 18ch; }
+            .lp-visual { max-width: 560px; margin: 0 auto; }
+            .lp-features { grid-template-columns: repeat(2, 1fr); }
           }
-          @media (max-width: 768px) {
-            .lp { padding: 12px 16px 32px; }
-            .lp-shell { border-radius: 20px; }
-            .lp-hero { padding: 40px 20px 28px; gap: 36px; }
+          /* Mobile: panels drop out of orbit into a grid under the cube */
+          @media (max-width: 640px) {
+            .lp { padding: 0 16px 64px; }
+            .lp-hero { padding: 40px 0 40px; }
             .lp-lede { font-size: 16px; }
             .lp-actions { width: 100%; flex-direction: column; }
             .lp-btn { width: 100%; }
-            .lp-features { grid-template-columns: 1fr; }
-            .lp-feature { padding: 20px; }
-            .lp-feature + .lp-feature { border-left: none; border-top: 1px solid var(--lp-border); }
-          }
-          @media (max-width: 560px) {
-            .lp-preview { padding: 10px; border-radius: 18px; }
-            .lp-pass { grid-template-columns: 1fr; }
-            .lp-pass-main { padding: 16px; }
-            .lp-route { gap: 10px; }
-            .lp-route-code { font-size: 22px; }
-            .lp-route-sub { white-space: normal; max-width: 9ch; }
-            .lp-perf { border-left: none; border-top: 2px dashed var(--lp-border); height: 0; }
-            .lp-perf::before, .lp-perf::after { top: -11px; bottom: auto; }
-            .lp-perf::before { left: -11px; }
-            .lp-perf::after { left: auto; right: -11px; }
-            .lp-pass-stub { flex-direction: row; flex-wrap: wrap; justify-content: flex-start; align-items: baseline; column-gap: 10px; padding: 14px 16px; }
-            .lp-stub-label { width: 100%; }
-            .lp-stub-value { font-size: 28px; }
-            .lp-barcode { margin: 0 0 0 auto; height: 24px; align-self: center; }
-            .lp-board-row { grid-template-columns: minmax(0, 1fr) auto; }
-            .lp-board-status { display: none; }
-            .lp-board-week span { display: none; }
+            .lp-visual {
+              height: auto;
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 12px;
+            }
+            .lp-cube-scene { grid-column: 1 / -1; justify-self: center; margin: 70px 0 100px; transform: scale(0.85); }
+            .lp-panel { position: static; min-width: 0; max-width: none !important; }
+            .lp-stats { grid-template-columns: repeat(2, 1fr); }
+            .lp-stat:nth-child(3) { border-left: none; }
+            .lp-stat:nth-child(n + 3) { border-top: 1px solid var(--lp-border); }
+            .lp-stat strong { font-size: 26px; }
+            .lp-features { grid-template-columns: 1fr; margin-top: 32px; }
           }
         `}</style>
       </main>

@@ -9,7 +9,7 @@ export default function PredictionBadge({ probability = 0, label = 'Match' }) {
   else if (p >= 50) type = 'warning'
 
   const colors = {
-    success: { bg: 'rgba(62, 207, 142, 0.1)', text: 'var(--primary)', dot: 'var(--primary)' },
+    success: { bg: 'rgba(62, 207, 142, 0.1)', text: 'var(--success)', dot: 'var(--success)' },
     warning: { bg: 'rgba(245, 176, 65, 0.1)', text: 'var(--warning)', dot: 'var(--warning)' },
     danger: { bg: 'rgba(255, 93, 93, 0.1)', text: 'var(--danger)', dot: 'var(--danger)' }
   }

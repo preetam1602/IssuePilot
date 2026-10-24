@@ -1,28 +1,30 @@
 :root {
-  /* Colors from design.md (dark-first) */
-  --background: #0B0F0C;
-  --card: #111714;
-  --elevated: #161D19;
-  --border: #1F2A23;
-  --border-light: rgba(62, 207, 142, 0.1);
-  --hover: #1B241F;
-  --primary: #3ECF8E;
-  --primary-hover: #32B67A;
-  --text: #F8FAF8;
-  --text-secondary: #AAB4AE;
-  --muted: #6B7280;
-  
+  /* Colors: dark navy with neon purple / electric blue / cyan accents (matches the landing page) */
+  --background: #05060F;
+  --card: #0E1124;
+  --elevated: #141831;
+  --border: #1F2645;
+  --border-light: rgba(124, 58, 237, 0.14);
+  --hover: #181D3A;
+  --primary: #A855F7;
+  --primary-hover: #9333EA;
+  --gradient-primary: linear-gradient(135deg, #7C3AED, #3B82F6);
+  --text: #F4F5FB;
+  --text-secondary: #9CA3C4;
+  --muted: #6B7299;
+
   /* Accent Colors */
   --success: #3ECF8E;
   --warning: #F5B041;
   --danger: #FF5D5D;
-  --info: #5DADE2;
+  --info: #3B82F6;
+  --cyan: #22D3EE;
 
   /* Shadows & Glass */
-  --shadow-soft: 0 4px 20px rgba(0,0,0,0.25);
-  --shadow-glow: 0 0 20px rgba(62, 207, 142, 0.1);
-  --glass: blur(12px) saturate(180%);
-  --navbar-bg: rgba(11, 15, 12, 0.8);
+  --shadow-soft: 0 4px 20px rgba(0,0,0,0.35);
+  --shadow-glow: 0 0 28px -8px rgba(124, 58, 237, 0.6);
+  --glass: blur(12px) saturate(140%);
+  --navbar-bg: rgba(5, 6, 15, 0.8);
 
   /* Typography */
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
@@ -113,12 +115,14 @@ p { font-size: 16px; line-height: 1.6; color: var(--text-secondary); }
 }
 
 .button-primary {
-  background: var(--primary);
-  color: #062014;
+  background: var(--gradient-primary);
+  color: #fff;
+  border-color: rgba(168, 85, 247, 0.6);
+  box-shadow: 0 0 24px -6px rgba(124, 58, 237, 0.7);
 }
 
 .button-primary:hover {
-  background: var(--primary-hover);
+  box-shadow: 0 0 32px -4px rgba(124, 58, 237, 0.85);
   transform: scale(1.02);
 }
 
@@ -130,7 +134,7 @@ p { font-size: 16px; line-height: 1.6; color: var(--text-secondary); }
 
 .button-secondary:hover {
   background: var(--hover);
-  border-color: var(--muted);
+  border-color: var(--info);
 }
 
 .button-ghost {
@@ -208,7 +212,7 @@ p { font-size: 16px; line-height: 1.6; color: var(--text-secondary); }
   height: 30vw;
   max-width: 420px;
   max-height: 420px;
-  background: var(--warning);
+  background: var(--cyan);
   top: 45%;
   left: 55%;
   opacity: 0.08;
